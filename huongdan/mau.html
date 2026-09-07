@@ -1,0 +1,479 @@
+import React, { useEffect, useMemo, useState } from "react";
+
+type OrbitName = "orbit1" | "orbit2" | "orbit3" | "orbit4" | "orbit5";
+
+type TechNode = {
+  name: string;
+  icon: string;
+  x: number;
+  y: number;
+  size: number;
+  orbit: OrbitName;
+};
+
+type GroupConfig = {
+  id: string;
+  number: string;
+  label: string;
+  color: string;
+  color2: string;
+  labelPos: { x: number; y: number };
+  connectorEnd: { x: number; y: number };
+  nodes: TechNode[];
+};
+
+const PROFILE = {
+  name: "Doan Tuyen",
+  subtitle: "Full Stack Developer",
+  avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=420&q=80",
+};
+
+const ORBIT_RADII: Record<OrbitName, { rx: number; ry: number }> = {
+  orbit1: { rx: 760, ry: 342 },
+  orbit2: { rx: 690, ry: 305 },
+  orbit3: { rx: 620, ry: 260 },
+  orbit4: { rx: 545, ry: 215 },
+  orbit5: { rx: 455, ry: 178 },
+};
+
+const GROUPS: GroupConfig[] = [
+  {
+    id: "frontend",
+    number: "01",
+    label: "FRONTEND",
+    color: "#35eaff",
+    color2: "#9b4dff",
+    labelPos: { x: 50.5, y: 7.1 },
+    connectorEnd: { x: 49, y: 16 },
+    nodes: [
+      { name: "React", icon: "react", x: 29.9, y: 16.1, size: 92, orbit: "orbit1" },
+      { name: "Next.js", icon: "next", x: 41.8, y: 13.1, size: 78, orbit: "orbit1" },
+      { name: "Tailwind CSS", icon: "tailwind", x: 54.1, y: 12.7, size: 78, orbit: "orbit1" },
+      { name: "React Native", icon: "react", x: 66.2, y: 14.8, size: 75, orbit: "orbit1" },
+    ],
+  },
+  {
+    id: "backend",
+    number: "02",
+    label: "BACKEND",
+    color: "#ff4ecd",
+    color2: "#ff3d86",
+    labelPos: { x: 87.2, y: 22.0 },
+    connectorEnd: { x: 82, y: 38 },
+    nodes: [
+      { name: "Node.js", icon: "node", x: 80.5, y: 26.6, size: 75, orbit: "orbit2" },
+      { name: "Express.js", icon: "express", x: 89.1, y: 36.2, size: 72, orbit: "orbit2" },
+      { name: "NestJS", icon: "nestjs", x: 93.0, y: 47.6, size: 70, orbit: "orbit2" },
+      { name: "PHP", icon: "php", x: 91.7, y: 59.3, size: 67, orbit: "orbit2" },
+      { name: "Laravel", icon: "laravel", x: 85.3, y: 70.0, size: 70, orbit: "orbit2" },
+      { name: "ASP.NET MVC", icon: "dotnet", x: 74.7, y: 78.3, size: 69, orbit: "orbit2" },
+    ],
+  },
+  {
+    id: "database",
+    number: "03",
+    label: "DATABASE",
+    color: "#22ffd1",
+    color2: "#65ff8f",
+    labelPos: { x: 76.6, y: 85.0 },
+    connectorEnd: { x: 68.5, y: 75.5 },
+    nodes: [
+      { name: "MySQL", icon: "mysql", x: 81.7, y: 67.1, size: 75, orbit: "orbit3" },
+      { name: "SQL Server", icon: "sqlserver", x: 74.9, y: 72.7, size: 73, orbit: "orbit3" },
+      { name: "MongoDB", icon: "mongodb", x: 66.4, y: 76.7, size: 73, orbit: "orbit3" },
+      { name: "Firebase", icon: "firebase", x: 56.7, y: 79.0, size: 72, orbit: "orbit3" },
+    ],
+  },
+  {
+    id: "devops",
+    number: "04",
+    label: "DEVOPS / CLOUD",
+    color: "#3aa2ff",
+    color2: "#35eaff",
+    labelPos: { x: 20.8, y: 78.8 },
+    connectorEnd: { x: 29, y: 67 },
+    nodes: [
+      { name: "Docker", icon: "docker", x: 35.6, y: 72.2, size: 75, orbit: "orbit4" },
+      { name: "GitHub Actions", icon: "actions", x: 28.1, y: 68.9, size: 70, orbit: "orbit4" },
+      { name: "CI/CD", icon: "cicd", x: 22.1, y: 64.3, size: 70, orbit: "orbit4" },
+      { name: "Cloud", icon: "cloud", x: 18.0, y: 58.7, size: 72, orbit: "orbit4" },
+    ],
+  },
+  {
+    id: "tools",
+    number: "05",
+    label: "TOOLS / API",
+    color: "#ffd35c",
+    color2: "#ff9b33",
+    labelPos: { x: 12.8, y: 45.5 },
+    connectorEnd: { x: 22.0, y: 52.0 },
+    nodes: [
+      { name: "REST API", icon: "api", x: 22.5, y: 47.1, size: 72, orbit: "orbit5" },
+      { name: "Prisma", icon: "prisma", x: 21.6, y: 50.6, size: 70, orbit: "orbit5" },
+      { name: "Sequelize", icon: "sequelize", x: 22.5, y: 55.7, size: 70, orbit: "orbit5" },
+      { name: "Git", icon: "git", x: 25.4, y: 60.4, size: 70, orbit: "orbit5" },
+    ],
+  },
+];
+
+function runInternalTests(): void {
+  console.assert(PROFILE.name.length > 0, "PROFILE.name must not be empty");
+  console.assert(PROFILE.subtitle.length > 0, "PROFILE.subtitle must not be empty");
+  console.assert(GROUPS.length === 5, "There must be exactly 5 skill groups");
+
+  const ids = new Set<string>();
+  for (const group of GROUPS) {
+    console.assert(!ids.has(group.id), `Duplicate group id: ${group.id}`);
+    ids.add(group.id);
+    console.assert(/^\d{2}$/.test(group.number), `${group.id} number must use 2 digits`);
+    console.assert(group.nodes.length > 0, `${group.id} must contain nodes`);
+
+    for (const node of group.nodes) {
+      console.assert(node.x >= 0 && node.x <= 100, `${group.id}/${node.name} x out of range`);
+      console.assert(node.y >= 0 && node.y <= 100, `${group.id}/${node.name} y out of range`);
+      console.assert(node.size > 0, `${group.id}/${node.name} size must be positive`);
+
+      const orbit = ORBIT_RADII[node.orbit];
+      const svgX = node.x * 16;
+      const svgY = node.y * 9;
+      const normalized = ((svgX - 800) / orbit.rx) ** 2 + ((svgY - 455) / orbit.ry) ** 2;
+      console.assert(Math.abs(normalized - 1) < 0.1, `${group.id}/${node.name} should sit on ${node.orbit}`);
+    }
+  }
+
+  const asp = GROUPS.find((g) => g.id === "backend")?.nodes.find((n) => n.name === "ASP.NET MVC");
+  const firebase = GROUPS.find((g) => g.id === "database")?.nodes.find((n) => n.name === "Firebase");
+  if (asp && firebase) {
+    const dx = (asp.x - firebase.x) * 16;
+    const dy = (asp.y - firebase.y) * 9;
+    console.assert(Math.hypot(dx, dy) > 95, "ASP.NET MVC and Firebase need clear breathing space");
+  }
+}
+
+function toSvgPoint(point: { x: number; y: number }): { x: number; y: number } {
+  return { x: point.x * 16, y: point.y * 9 };
+}
+
+function getConnectorPath(group: GroupConfig): string {
+  const center = { x: 800, y: 450 };
+  const end = toSvgPoint(group.connectorEnd);
+  const offsetY = group.id === "frontend" ? -28 : group.id === "database" ? 34 : 0;
+  const mid = {
+    x: center.x + (end.x - center.x) * 0.55,
+    y: center.y + (end.y - center.y) * 0.55 + offsetY,
+  };
+  return `M ${center.x} ${center.y} Q ${mid.x} ${mid.y} ${end.x} ${end.y}`;
+}
+
+function Icon({ type }: { type: string }): JSX.Element {
+  if (type === "react") {
+    return (
+      <svg viewBox="0 0 100 100" aria-hidden="true">
+        <g fill="none" stroke="currentColor" strokeWidth="5">
+          <ellipse cx="50" cy="50" rx="38" ry="14" />
+          <ellipse cx="50" cy="50" rx="38" ry="14" transform="rotate(60 50 50)" />
+          <ellipse cx="50" cy="50" rx="38" ry="14" transform="rotate(120 50 50)" />
+        </g>
+        <circle cx="50" cy="50" r="7" fill="currentColor" />
+      </svg>
+    );
+  }
+
+  if (type === "tailwind") {
+    return (
+      <svg viewBox="0 0 100 100" aria-hidden="true">
+        <path fill="currentColor" d="M28 42c6-16 18-24 36-24 11 0 19 4 25 12-6-3-12-3-18 0-6 3-10 9-14 16-6 11-14 16-25 16-10 0-18-4-24-12 6 3 13 3 20-8Zm15 22c6-16 18-24 36-24 10 0 18 4 24 12-6-3-12-3-18 0-6 3-10 9-14 16-6 11-14 16-25 16-10 0-18-4-24-12 6 3 13 3 21-8Z" />
+      </svg>
+    );
+  }
+
+  if (type === "next") return <span className="node-letter">N</span>;
+  if (type === "node") return <span className="node-letter">JS</span>;
+  if (type === "express") return <span className="node-letter">ex</span>;
+  if (type === "php") return <span className="node-letter">php</span>;
+  if (type === "dotnet") return <span className="node-letter node-letter-small">.NET</span>;
+  if (type === "mysql") return <span className="node-letter node-letter-small">My<br />SQL</span>;
+  if (type === "cicd") return <span className="node-letter node-letter-small">CI</span>;
+  if (type === "api") return <span className="node-letter node-letter-small">API</span>;
+
+  const pathMap: Record<string, string> = {
+    nestjs: "M51 8c11 2 22 8 31 18-6-2-12-2-18 1 9 3 18 8 25 16-7-2-13-2-19 1 7 3 13 8 18 15-9-2-16 0-22 6-4 4-6 8-7 13-14 8-31 5-42-6C3 58 2 35 16 21 25 12 38 7 51 8Zm-9 29c-5 0-9 4-9 9s4 9 9 9 9-4 9-9-4-9-9-9Zm25 4c-4 0-7 3-7 7s3 7 7 7 7-3 7-7-3-7-7-7Z",
+    laravel: "M13 18 31 8l18 10v20l15-9 18 10v22L49 80 13 60V18Zm7 12v26l11 6V24l-11 6Zm18-6v38l11-6V30l-11-6Zm18 21v26l11-6V39l-11 6Zm18 0v16l8-5V40l-8 5Z",
+    sqlserver: "M50 8c23 0 38 7 38 16v52c0 9-15 16-38 16s-38-7-38-16V24c0-9 15-16 38-16Zm0 10c-18 0-28 5-28 7s10 7 28 7 28-5 28-7-10-7-28-7Zm28 23c-7 4-17 6-28 6s-21-2-28-6v12c0 2 10 7 28 7s28-5 28-7V41Zm0 27c-7 4-17 6-28 6s-21-2-28-6v8c0 2 10 7 28 7s28-5 28-7v-8Z",
+    mongodb: "M52 6c14 15 25 33 25 51 0 18-11 30-25 35-1-13-2-26-2-39 0 13-1 26-2 39-14-5-25-17-25-35C23 39 35 21 50 6h2Z",
+    firebase: "M18 76 30 16c1-5 8-6 11-2l10 19 8-15c2-4 8-3 9 2l14 56-32 18-32-18Zm14-33-5 25 17-31-7-14-5 20Zm23 4L39 75l12 7 19-11-9-36-6 12Z",
+    docker: "M16 50h66c-2 19-17 32-38 32-17 0-28-8-33-22H5c2-6 5-9 11-10Zm7-9h10v-9H23v9Zm13 0h10v-9H36v9Zm13 0h10v-9H49v9Zm13 0h10v-9H62v9ZM36 29h10v-9H36v9Zm13 0h10v-9H49v9Zm34 12c4-4 8-5 12-4-1 5-4 8-9 10l-3-6Z",
+    actions: "M50 5 88 27v46L50 95 12 73V27L50 5Zm0 12L25 31v28l25 15 25-15V31L50 17Zm0 18 15 8v17l-15 9-15-9V43l15-8Z",
+    cloud: "M33 73c-13 0-23-9-23-21 0-11 9-20 20-21 5-12 16-19 30-17 14 2 24 14 25 28 9 2 15 9 15 16 0 9-8 15-18 15H33Z",
+    prisma: "M49 7c-3 0-5 2-7 5L15 76c-2 5 2 10 7 9l55-13c5-1 7-7 4-11L54 11c-1-3-3-4-5-4Zm-1 18 21 39-33 8 12-47Z",
+    sequelize: "M50 5 88 27v46L50 95 12 73V27L50 5Zm0 12L25 31v28l25 15 25-15V31L50 17Zm0 18 15 8v17l-15 9-15-9V43l15-8Z",
+    git: "M92 45 55 8c-3-3-7-3-10 0L34 19l9 9c4-1 8 0 11 3 3 3 4 8 3 12l9 9c4-1 8 0 11 3 5 5 5 13 0 18s-13 5-18 0c-3-3-4-8-3-12l-9-9v24c2 1 4 2 5 3 5 5 5 13 0 18s-13 5-18 0-5-13 0-18c1-1 3-3 5-3V51c-2-1-4-2-5-3-3-3-4-8-3-12l-9-9L8 41c-3 3-3 7 0 10l37 37c3 3 7 3 10 0l37-37c3-3 3-7 0-10Z",
+  };
+
+  return (
+    <svg viewBox="0 0 100 100" aria-hidden="true">
+      <path fill="currentColor" d={pathMap[type] ?? pathMap.cloud} />
+    </svg>
+  );
+}
+
+const styles = `
+:root {
+  --bg-0: #02030b;
+  --bg-1: #050719;
+  --white: #eef7ff;
+  --cyan: #35eaff;
+  --blue: #3688ff;
+  --violet: #9b4dff;
+  --pink: #ff4ecd;
+  --font: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+* { box-sizing: border-box; }
+html, body, #root { width: 100%; min-height: 100%; margin: 0; background: #02030b; color: var(--white); font-family: var(--font); }
+body { overflow-x: hidden; }
+.tech-galaxy { position: relative; width: 100%; min-height: 100vh; overflow: hidden; display: grid; place-items: center; background: radial-gradient(circle at 18% 80%, rgba(24, 122, 255, 0.25), transparent 27%), radial-gradient(circle at 86% 22%, rgba(177, 41, 255, 0.27), transparent 28%), radial-gradient(circle at 66% 72%, rgba(8, 255, 219, 0.16), transparent 28%), radial-gradient(circle at 50% 50%, #071033 0%, var(--bg-1) 42%, var(--bg-0) 100%); isolation: isolate; }
+.tech-galaxy::before, .tech-galaxy::after { content: ""; position: absolute; inset: -20%; pointer-events: none; z-index: -2; }
+.tech-galaxy::before { background-image: radial-gradient(circle, rgba(255,255,255,.95) 0 1px, transparent 1.2px), radial-gradient(circle, rgba(62,233,255,.72) 0 1px, transparent 1.3px), radial-gradient(circle, rgba(182,88,255,.75) 0 1px, transparent 1.4px); background-size: 110px 110px, 180px 180px, 260px 260px; opacity: .72; animation: starDrift 48s linear infinite; }
+.tech-galaxy::after { background: radial-gradient(ellipse at 15% 72%, rgba(21, 101, 255, .23), transparent 29%), radial-gradient(ellipse at 92% 38%, rgba(255, 56, 199, .18), transparent 27%), radial-gradient(ellipse at 78% 8%, rgba(132, 75, 255, .22), transparent 25%), linear-gradient(115deg, transparent 0 34%, rgba(58,225,255,.055) 46%, transparent 58% 100%); filter: blur(1px); animation: nebulaPulse 8s ease-in-out infinite alternate; }
+@keyframes starDrift { from { transform: translate3d(0,0,0); } to { transform: translate3d(-110px,80px,0); } }
+@keyframes nebulaPulse { from { opacity: .55; transform: scale(1); } to { opacity: .95; transform: scale(1.03); } }
+.corner-scan { position: absolute; inset: 0; pointer-events: none; z-index: 30; background: linear-gradient(to bottom, transparent, rgba(72,235,255,.04), transparent); height: 120px; animation: scan 5.8s ease-in-out infinite; opacity: .45; }
+@keyframes scan { 0% { transform: translateY(-140px); } 100% { transform: translateY(calc(100vh + 140px)); } }
+.galaxy-frame { position: relative; width: min(100vw, 1600px); aspect-ratio: 16 / 9; min-height: 640px; transform-origin: center; }
+.galaxy-frame::before { content: ""; position: absolute; inset: 4.5% 5%; border-radius: 50%; background: repeating-radial-gradient(ellipse at center, transparent 0 28px, rgba(58, 214, 255, .14) 29px 30px, transparent 31px 54px), radial-gradient(ellipse at center, transparent 0 29%, rgba(68, 171, 255, .08) 50%, transparent 72%); transform: rotateX(62deg) rotateZ(-1deg); filter: drop-shadow(0 0 12px rgba(58, 205, 255, .28)); opacity: .86; }
+.galaxy-frame::after { content: ""; position: absolute; inset: 16% 19%; border-radius: 50%; background: radial-gradient(circle at center, rgba(111,72,255,.16), transparent 27%), repeating-radial-gradient(circle at center, transparent 0 18px, rgba(146,94,255,.18) 19px 20px, transparent 21px 38px); transform: scaleY(.46); filter: drop-shadow(0 0 20px rgba(122,90,255,.22)); pointer-events: none; }
+.hud-vignette { position: absolute; inset: 0; background: radial-gradient(ellipse at center, transparent 0 52%, rgba(0,0,0,.3) 78%, rgba(0,0,0,.72) 100%); pointer-events: none; z-index: 25; }
+.orbit-layer, .connect-layer, .node-layer, .label-layer, .core-layer, .star-layer { position: absolute; inset: 0; }
+.orbit-layer { z-index: 2; filter: drop-shadow(0 0 7px rgba(79,207,255,.4)); }
+.connect-layer { z-index: 4; opacity: .9; }
+.star-layer { z-index: 5; pointer-events: none; }
+.node-layer { z-index: 10; }
+.label-layer { z-index: 14; }
+.core-layer { z-index: 12; pointer-events: none; }
+.layer-svg { width: 100%; height: 100%; display: block; }
+.orbit-path { fill: none; stroke-width: 1.4; stroke-linecap: round; stroke-dasharray: 7 9; opacity: .75; animation: dashMove 24s linear infinite; }
+.orbit-path.faint { stroke-width: .9; opacity: .32; stroke-dasharray: 2 12; }
+.orbit-path-five { stroke-width: 1.15; opacity: .62; stroke-dasharray: 5 10; }
+@keyframes dashMove { to { stroke-dashoffset: -320; } }
+.connector { fill: none; stroke-width: 1.2; stroke-dasharray: 4 9; opacity: .68; animation: ledFlow 5.5s linear infinite; filter: drop-shadow(0 0 6px currentColor); }
+@keyframes ledFlow { to { stroke-dashoffset: -90; } }
+.led-dot { filter: drop-shadow(0 0 9px currentColor); animation: dotPulse 2.6s ease-in-out infinite alternate; }
+@keyframes dotPulse { from { opacity: .55; } to { opacity: 1; } }
+.star { position: absolute; border-radius: 50%; opacity: .85; box-shadow: 0 0 10px currentColor, 0 0 22px currentColor; animation: twinkle linear infinite; }
+@keyframes twinkle { 0%,100% { transform: scale(.8); opacity:.45; } 50% { transform: scale(1.25); opacity:1; } }
+.tech-node { position: absolute; left: var(--x); top: var(--y); width: var(--size); height: var(--size); transform: translate(-50%, -50%) scale(.66); opacity: 0; display: grid; place-items: center; cursor: pointer; animation: nodeIntro .75s cubic-bezier(.18,.89,.32,1.28) forwards; animation-delay: var(--delay); transition: transform .28s ease, filter .28s ease; border: none; background: none; padding: 0; }
+@keyframes nodeIntro { to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
+.tech-node:hover, .tech-node.is-highlighted { transform: translate(-50%, -50%) scale(1.16); z-index: 50; filter: saturate(1.35) brightness(1.18); }
+.node-shell { position: absolute; inset: 0; border-radius: 50%; background: radial-gradient(circle at 50% 45%, rgba(255,255,255,.11), transparent 34%), linear-gradient(135deg, rgba(255,255,255,.12), rgba(255,255,255,.02)); border: 1px solid rgba(255,255,255,.18); box-shadow: 0 0 10px var(--color), 0 0 22px var(--color), 0 0 42px var(--color2), inset 0 0 18px rgba(255,255,255,.08); clip-path: polygon(50% 0%, 88% 14%, 100% 50%, 86% 88%, 50% 100%, 13% 87%, 0% 50%, 14% 13%); animation: nodeBreath 3.8s ease-in-out infinite alternate; }
+@keyframes nodeBreath { from { filter: brightness(.94); } to { filter: brightness(1.18); } }
+.node-shell::before, .node-shell::after { content: ""; position: absolute; inset: 6px; border-radius: inherit; clip-path: inherit; pointer-events: none; }
+.node-shell::before { border: 1px dashed rgba(255,255,255,.32); opacity:.82; animation: rotateRing 14s linear infinite; }
+.node-shell::after { inset: -8px; background: conic-gradient(from 0deg, transparent 0 18%, var(--color) 22%, transparent 28% 56%, var(--color2) 62%, transparent 70% 100%); opacity:.26; filter: blur(8px); animation: rotateRing 8s linear infinite reverse; }
+@keyframes rotateRing { to { transform: rotate(360deg); } }
+.node-icon { position: relative; width: 44%; height: 44%; display: grid; place-items: center; color: var(--color); text-shadow: 0 0 10px var(--color), 0 0 18px var(--color); filter: drop-shadow(0 0 9px var(--color)); z-index: 2; }
+.node-icon svg { width: 100%; height: 100%; }
+.node-letter { font-weight: 850; font-size: clamp(17px, 1.5vw, 26px); line-height: 1; letter-spacing: -.08em; }
+.node-letter-small { font-size: clamp(12px, 1vw, 17px); letter-spacing: -.03em; line-height: .95; }
+.node-name { position: absolute; left: 50%; top: calc(100% + 7px); transform: translateX(-50%); min-width: 92px; text-align: center; font-size: clamp(9px, .66vw, 12px); font-weight: 700; color: rgba(241,251,255,.88); text-shadow: 0 0 8px rgba(255,255,255,.35), 0 0 14px var(--color); pointer-events: none; }
+.tech-node:hover .node-name, .tech-node.is-highlighted .node-name { color: white; text-shadow: 0 0 8px white, 0 0 18px var(--color), 0 0 30px var(--color2); }
+.group-label { position: absolute; left: var(--x); top: var(--y); transform: translate(-50%, -50%); display: inline-flex; align-items: center; gap: 10px; min-height: 34px; padding: 5px 14px 5px 6px; border: 1px solid rgba(255,255,255,.18); border-radius: 999px; background: linear-gradient(180deg, rgba(15,18,48,.75), rgba(5,8,24,.48)); box-shadow: 0 0 14px var(--color), inset 0 0 14px rgba(255,255,255,.035); backdrop-filter: blur(10px); pointer-events: auto; cursor: pointer; user-select: none; transition: transform .24s ease, box-shadow .24s ease; }
+.group-label .number { width: 24px; height: 24px; display: grid; place-items: center; border-radius: 50%; color: var(--color); border: 1px solid rgba(255,255,255,.24); font-size: 12px; font-weight: 900; text-shadow: 0 0 12px var(--color); background: rgba(255,255,255,.04); }
+.group-label .label-text { color: #eef7ff; font-size: clamp(10px, .72vw, 13px); font-weight: 850; letter-spacing: .08em; text-shadow: 0 0 10px var(--color); white-space: nowrap; }
+.group-label:hover, .group-label.active { transform: translate(-50%, -50%) scale(1.06); box-shadow: 0 0 16px var(--color), 0 0 38px var(--color); }
+.core { position: absolute; left: 50%; top: 50%; width: 166px; transform: translate(-50%, -48%); display: grid; justify-items: center; text-align: center; }
+.avatar-wrap { position: relative; width: 132px; height: 132px; border-radius: 50%; display: grid; place-items: center; background: radial-gradient(circle, rgba(26,240,255,.22), transparent 68%); filter: drop-shadow(0 0 20px rgba(46,221,255,.72)); animation: corePulse 2.7s ease-in-out infinite alternate; }
+@keyframes corePulse { from { filter: drop-shadow(0 0 15px rgba(46,221,255,.55)); } to { filter: drop-shadow(0 0 23px rgba(255,60,214,.8)); } }
+.avatar-wrap::before { content:""; position:absolute; inset:-9px; border-radius:50%; background: conic-gradient(from 210deg, var(--cyan), var(--blue), var(--violet), var(--pink), var(--cyan)); box-shadow: 0 0 24px rgba(56,232,255,.72), 0 0 38px rgba(255,70,214,.55); animation: rotateRing 6s linear infinite; }
+.avatar-wrap::after { content:""; position:absolute; inset:-21px; border-radius:50%; border:1px dashed rgba(103,222,255,.42); box-shadow: 0 0 28px rgba(123,77,255,.34); animation: rotateRing 18s linear infinite reverse; }
+.avatar { position: relative; z-index: 2; width: 118px; height: 118px; border-radius: 50%; object-fit: cover; object-position: center; border: 2px solid rgba(255,255,255,.22); background: linear-gradient(145deg, #122659, #0a0d19 58%, #351044); }
+.core h1 { margin: 16px 0 0; font-size: 19px; line-height: 1.1; font-weight: 850; letter-spacing: -.02em; color: #f5fbff; text-shadow: 0 0 10px rgba(255,255,255,.3), 0 0 20px rgba(65,230,255,.42); }
+.core p { margin: 5px 0 0; font-size: 11px; color: rgba(232,246,255,.72); font-weight: 600; }
+.core-badge { margin-top: 14px; padding: 6px 16px; border-radius: 999px; border: 1px solid rgba(83,162,255,.42); background: linear-gradient(90deg, rgba(26,89,255,.18), rgba(154,69,255,.16)); color: #86bfff; font-size: 10px; font-weight: 800; letter-spacing: .05em; box-shadow: 0 0 14px rgba(48,133,255,.3), inset 0 0 12px rgba(255,255,255,.04); }
+.mobile-hint { display: none; position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%); color: rgba(221,244,255,.68); font-size: 12px; z-index: 40; }
+@media (max-width: 1100px) { .galaxy-frame { width: 1180px; transform: scale(.82); } .tech-galaxy { min-height: 760px; } }
+@media (max-width: 760px) { .tech-galaxy { min-height: 920px; place-items: start center; padding-top: 18px; } .galaxy-frame { width: 980px; min-height: 700px; transform: scale(.56); transform-origin: top center; } .mobile-hint { display: block; } }
+`;
+
+export default function App(): JSX.Element {
+  const [activeGroup, setActiveGroup] = useState<string | null>(null);
+
+  useEffect(() => {
+    runInternalTests();
+  }, []);
+
+  const stars = useMemo(() => {
+    return Array.from({ length: 85 }, (_, i) => ({
+      id: i,
+      left: (i * 37.7) % 100,
+      top: (i * 61.3) % 100,
+      size: 1 + ((i * 1.7) % 2.4),
+      color: i % 3 === 0 ? "#ffffff" : i % 3 === 1 ? "#55e7ff" : "#bf7fff",
+      delay: `${(i * 0.13) % 4}s`,
+      duration: `${3 + ((i * 0.19) % 4)}s`,
+    }));
+  }, []);
+
+  const movingDots = [
+    { id: "p1", rx: 760, ry: 342, color: "#ff4ecd", dur: "29s", begin: "-8s" },
+    { id: "p2", rx: 690, ry: 305, color: "#22ffd1", dur: "24s", begin: "-5s" },
+    { id: "p3", rx: 620, ry: 260, color: "#35eaff", dur: "19s", begin: "0s" },
+    { id: "p4", rx: 545, ry: 215, color: "#ffd35c", dur: "21s", begin: "-3s" },
+    { id: "p5", rx: 455, ry: 178, color: "#3aa2ff", dur: "17s", begin: "-7s" },
+  ];
+
+  return (
+    <>
+      <style>{styles}</style>
+      <section className="tech-galaxy" aria-label="Tech Galaxy My Skills Section">
+        <div className="corner-scan" />
+        <div className="galaxy-frame">
+          <svg className="orbit-layer layer-svg" viewBox="0 0 1600 900" preserveAspectRatio="none" aria-hidden="true">
+            <defs>
+              <linearGradient id="orbitFront" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0" stopColor="#35eaff" stopOpacity=".1" />
+                <stop offset=".3" stopColor="#9b4dff" stopOpacity=".85" />
+                <stop offset=".64" stopColor="#35eaff" stopOpacity=".75" />
+                <stop offset="1" stopColor="#ff4ecd" stopOpacity=".1" />
+              </linearGradient>
+              <linearGradient id="orbitBack" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0" stopColor="#ffd35c" stopOpacity=".75" />
+                <stop offset=".48" stopColor="#ff4ecd" stopOpacity=".55" />
+                <stop offset="1" stopColor="#ff3d86" stopOpacity=".85" />
+              </linearGradient>
+              <linearGradient id="orbitData" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0" stopColor="#35eaff" stopOpacity=".85" />
+                <stop offset=".58" stopColor="#22ffd1" stopOpacity=".85" />
+                <stop offset="1" stopColor="#65ff8f" stopOpacity=".75" />
+              </linearGradient>
+              <linearGradient id="orbitCloud" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0" stopColor="#3688ff" stopOpacity=".85" />
+                <stop offset=".65" stopColor="#35eaff" stopOpacity=".65" />
+                <stop offset="1" stopColor="#9b4dff" stopOpacity=".2" />
+              </linearGradient>
+            </defs>
+            <ellipse className="orbit-path" cx="800" cy="455" rx="760" ry="342" stroke="url(#orbitBack)" style={{ animationDuration: "38s" }} />
+            <ellipse className="orbit-path" cx="800" cy="455" rx="690" ry="305" stroke="url(#orbitData)" style={{ animationDuration: "32s" }} />
+            <ellipse className="orbit-path" cx="800" cy="455" rx="620" ry="260" stroke="url(#orbitFront)" />
+            <ellipse className="orbit-path" cx="800" cy="455" rx="545" ry="215" stroke="url(#orbitCloud)" style={{ animationDuration: "29s" }} />
+            <ellipse className="orbit-path orbit-path-five" cx="800" cy="455" rx="455" ry="178" stroke="#ffd35c" style={{ animationDuration: "27s" }} />
+            <ellipse className="orbit-path faint" cx="800" cy="455" rx="365" ry="138" stroke="#a154ff" />
+            <ellipse className="orbit-path faint" cx="800" cy="455" rx="285" ry="108" stroke="#35eaff" />
+            <ellipse className="orbit-path faint" cx="800" cy="455" rx="220" ry="82" stroke="#ff4ecd" />
+          </svg>
+
+          <svg className="connect-layer layer-svg" viewBox="0 0 1600 900" preserveAspectRatio="none" aria-hidden="true">
+            {GROUPS.map((group) => {
+              const center = { x: 800, y: 450 };
+              const end = toSvgPoint(group.connectorEnd);
+              return (
+                <g key={group.id} style={{ color: group.color }}>
+                  <path className="connector" d={getConnectorPath(group)} stroke={group.color} />
+                  {[0.45, 0.72, 1].map((t, i) => (
+                    <circle
+                      key={`${group.id}-${t}`}
+                      className="led-dot"
+                      cx={center.x + (end.x - center.x) * t}
+                      cy={center.y + (end.y - center.y) * t}
+                      r={i === 2 ? 5 : 3.5}
+                      fill={group.color}
+                    />
+                  ))}
+                </g>
+              );
+            })}
+          </svg>
+
+          <div className="star-layer" aria-hidden="true">
+            {stars.map((star) => (
+              <span
+                key={star.id}
+                className="star"
+                style={{
+                  left: `${star.left}%`,
+                  top: `${star.top}%`,
+                  width: `${star.size}px`,
+                  height: `${star.size}px`,
+                  color: star.color,
+                  background: star.color,
+                  animationDelay: star.delay,
+                  animationDuration: star.duration,
+                }}
+              />
+            ))}
+          </div>
+
+          <svg className="connect-layer layer-svg" viewBox="0 0 1600 900" preserveAspectRatio="none" aria-hidden="true">
+            {movingDots.map((item) => (
+              <g key={item.id}>
+                <path id={item.id} d={`M ${800 - item.rx} 455 a ${item.rx} ${item.ry} 0 1 0 ${item.rx * 2} 0 a ${item.rx} ${item.ry} 0 1 0 -${item.rx * 2} 0`} fill="none" stroke="transparent" />
+                <circle r="4" fill={item.color} style={{ filter: `drop-shadow(0 0 10px ${item.color}) drop-shadow(0 0 22px ${item.color})` }}>
+                  <animateMotion dur={item.dur} begin={item.begin} repeatCount="indefinite">
+                    <mpath href={`#${item.id}`} />
+                  </animateMotion>
+                </circle>
+              </g>
+            ))}
+          </svg>
+
+          <div className="node-layer">
+            {GROUPS.flatMap((group, groupIndex) =>
+              group.nodes.map((node, nodeIndex) => (
+                <button
+                  key={`${group.id}-${node.name}`}
+                  type="button"
+                  aria-label={node.name}
+                  className={`tech-node ${activeGroup === group.id ? "is-highlighted" : ""}`}
+                  style={{
+                    "--x": `${node.x}%`,
+                    "--y": `${node.y}%`,
+                    "--size": `${node.size}px`,
+                    "--color": group.color,
+                    "--color2": group.color2,
+                    "--delay": `${0.25 + groupIndex * 0.12 + nodeIndex * 0.06}s`,
+                  } as React.CSSProperties}
+                >
+                  <span className="node-shell" />
+                  <span className="node-icon"><Icon type={node.icon} /></span>
+                  <span className="node-name">{node.name}</span>
+                </button>
+              ))
+            )}
+          </div>
+
+          <div className="label-layer">
+            {GROUPS.map((group) => (
+              <div
+                key={group.id}
+                className={`group-label ${activeGroup === group.id ? "active" : ""}`}
+                style={{
+                  "--x": `${group.labelPos.x}%`,
+                  "--y": `${group.labelPos.y}%`,
+                  "--color": group.color,
+                } as React.CSSProperties}
+                onMouseEnter={() => setActiveGroup(group.id)}
+                onMouseLeave={() => setActiveGroup(null)}
+              >
+                <span className="number">{group.number}</span>
+                <strong className="label-text">{group.label}</strong>
+              </div>
+            ))}
+          </div>
+
+          <div className="core-layer">
+            <div className="core">
+              <div className="avatar-wrap">
+                <img className="avatar" src={PROFILE.avatar} alt={`${PROFILE.name} portrait`} />
+              </div>
+              <h1>{PROFILE.name}</h1>
+              <p>{PROFILE.subtitle}</p>
+              <div className="core-badge">Core</div>
+            </div>
+          </div>
+
+          <div className="hud-vignette" />
+        </div>
+        <div className="mobile-hint">Tech Galaxy • kéo ngang nếu màn hình nhỏ</div>
+      </section>
+    </>
+  );
+}
