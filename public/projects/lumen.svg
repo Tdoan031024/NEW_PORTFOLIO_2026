@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">
+  <defs>
+    <linearGradient id="g" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#ff6ae0"/>
+      <stop offset="55%" stop-color="#6a7bff"/>
+      <stop offset="100%" stop-color="#52f5ff"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="600" fill="#0a0c16"/>
+  <rect x="140" y="140" width="520" height="320" rx="40" fill="url(#g)" opacity="0.6"/>
+  <text x="60" y="520" fill="#e6e8f0" font-family="sans-serif" font-size="42" letter-spacing="6">LUMEN</text>
+</svg>
