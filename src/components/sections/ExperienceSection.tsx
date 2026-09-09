@@ -145,7 +145,7 @@ function ExperienceCard({
 }) {
   return (
     <article
-      className={`group w-full rounded-[16px] border px-7 py-7 shadow-[0_12px_35px_rgba(0,0,0,0.28)] transition-all duration-300 sm:px-8 sm:py-8 ${
+      className={`group w-full rounded-[16px] border px-4 py-5 shadow-[0_12px_35px_rgba(0,0,0,0.28)] transition-all duration-300 sm:px-8 sm:py-8 ${
         isPrimary
           ? "border-cyan-300/35 shadow-[0_0_0_1px_rgba(103,232,249,0.14),0_14px_38px_rgba(34,211,238,0.13)]"
           : "border-white/10"
@@ -210,10 +210,10 @@ function TimelineItem() {
           return (
             <div
               key={`${timelineItem.title}-${timelineItem.company}`}
-              className="relative grid grid-cols-[48px_minmax(0,1fr)] gap-3 sm:grid-cols-[62px_minmax(0,1fr)] sm:gap-5"
+              className="relative grid grid-cols-[40px_minmax(0,1fr)] gap-2.5 sm:grid-cols-[62px_minmax(0,1fr)] sm:gap-5"
             >
               {!isItemLast ? (
-                <span className="absolute left-[23px] top-11 h-[calc(100%+30px)] w-px bg-[linear-gradient(to_bottom,rgba(255,255,255,0.04),rgba(103,232,249,0.35),rgba(255,255,255,0.04))] sm:left-[30px]">
+                <span className="absolute left-[19px] top-11 h-[calc(100%+30px)] w-px bg-[linear-gradient(to_bottom,rgba(255,255,255,0.04),rgba(103,232,249,0.35),rgba(255,255,255,0.04))] sm:left-[30px]">
                   <motion.span
                     initial={false}
                     className="absolute left-0 top-0 block w-[2px] bg-cyan-200 shadow-[0_0_20px_rgba(103,232,249,1),0_0_36px_rgba(34,211,238,0.95),0_0_54px_rgba(34,211,238,0.8)]"
@@ -239,12 +239,12 @@ function TimelineItem() {
                     target="_blank"
                     rel="noreferrer"
                     aria-label={`Open ${timelineItem.company} website`}
-                    className="block h-11 w-11 overflow-hidden rounded-[14px] border border-white/20 bg-[#081124] shadow-[0_8px_20px_rgba(0,0,0,0.28)] ring-4 ring-[#020817] transition-all duration-300 hover:-translate-y-1 hover:scale-105 hover:border-cyan-300/45 hover:shadow-[0_18px_38px_rgba(34,211,238,0.22)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-cyan-300/40 sm:h-12 sm:w-12"
+                    className="block h-10 w-10 overflow-hidden rounded-[12px] border border-white/20 bg-[#081124] shadow-[0_8px_20px_rgba(0,0,0,0.28)] ring-2 ring-[#020817] transition-all duration-300 hover:-translate-y-1 hover:scale-105 hover:border-cyan-300/45 hover:shadow-[0_18px_38px_rgba(34,211,238,0.22)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-cyan-300/40 sm:h-12 sm:w-12 sm:rounded-[14px] sm:ring-4"
                   >
                     <LogoMarker type={timelineItem.logo} />
                   </a>
                 ) : (
-                  <div className="h-11 w-11 overflow-hidden rounded-[14px] border border-white/20 bg-[#081124] shadow-[0_8px_20px_rgba(0,0,0,0.28)] ring-4 ring-[#020817] transition-all duration-300 hover:-translate-y-1 hover:scale-105 hover:border-cyan-300/45 hover:shadow-[0_18px_38px_rgba(34,211,238,0.22)] sm:h-12 sm:w-12">
+                  <div className="h-10 w-10 overflow-hidden rounded-[12px] border border-white/20 bg-[#081124] shadow-[0_8px_20px_rgba(0,0,0,0.28)] ring-2 ring-[#020817] transition-all duration-300 hover:-translate-y-1 hover:scale-105 hover:border-cyan-300/45 hover:shadow-[0_18px_38px_rgba(34,211,238,0.22)] sm:h-12 sm:w-12 sm:rounded-[14px] sm:ring-4">
                     <LogoMarker type={timelineItem.logo} />
                   </div>
                 )}

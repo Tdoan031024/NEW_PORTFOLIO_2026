@@ -111,7 +111,7 @@ export default function IntroModelSection() {
         </>
       )}
       <div className="relative z-40 flex w-full flex-col items-center overflow-visible">
-        <div className="relative z-40 h-[160vh] w-full overflow-visible rounded-none bg-transparent -mb-78">
+        <div className="relative z-40 h-[85vh] sm:h-[110vh] md:h-[135vh] lg:h-[160vh] w-full overflow-visible rounded-none bg-transparent -mb-20 sm:-mb-40 md:-mb-60 lg:-mb-78">
           <HeroThree
             className="relative z-40 h-full w-full overflow-visible"
             introZoom

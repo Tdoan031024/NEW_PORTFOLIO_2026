@@ -141,19 +141,21 @@ export default function SiteHeader() {
           entered ? "translate-y-0 opacity-100" : "-translate-y-full opacity-0"
         }`}
       >
-        <div className="flex w-full items-center px-6 py-4 md:px-10 md:pr-16 lg:px-12 lg:pr-20">
-          <span className="text-sm font-semibold tracking-[0.3em] text-white">DOAN</span>
-          <div className="ml-auto flex items-center gap-3">
+        <div className="flex w-full items-center px-4 py-3 sm:px-6 sm:py-4 md:px-10 md:pr-16 lg:px-12 lg:pr-20">
+          <span className="text-xs sm:text-sm font-semibold tracking-[0.25em] sm:tracking-[0.3em] text-white">DOAN</span>
+          <div className="ml-auto flex items-center gap-2 sm:gap-3">
             <GoogleTranslate />
             <ThemeToggle />
-            <button className="rounded-full border border-cyan-200/55 bg-cyan-300/18 px-4 py-2 text-xs font-semibold text-cyan-100 shadow-[0_0_22px_rgba(34,211,238,0.22)] transition hover:bg-cyan-300/28">
+            <button className="rounded-full border border-cyan-200/55 bg-cyan-300/18 px-3 py-1.5 sm:px-4 sm:py-2 text-[11px] sm:text-xs font-semibold text-cyan-100 shadow-[0_0_22px_rgba(34,211,238,0.22)] transition hover:bg-cyan-300/28">
               {t("downloadCv")}
             </button>
           </div>
         </div>
       </header>
 
+      {/* Desktop Sidebar Quick Links */}
       <nav
+        aria-label="Desktop navigation"
         className={`fixed right-4 top-1/2 !z-[220] hidden -translate-y-1/2 flex-col gap-2 transition-all duration-500 ease-out md:flex ${
           hasScrolled
             ? "pointer-events-auto translate-x-0 opacity-100"
@@ -172,6 +174,28 @@ export default function SiteHeader() {
             <span className="pointer-events-none absolute right-[calc(100%+10px)] rounded-md border border-white/10 bg-[#050b18]/95 px-2 py-1 text-[11px] text-white/85 opacity-0 transition group-hover:opacity-100">
               {item.label}
             </span>
+          </a>
+        ))}
+      </nav>
+
+      {/* Mobile Floating Bottom Dock */}
+      <nav
+        aria-label="Mobile navigation"
+        className={`fixed bottom-4 left-1/2 !z-[220] flex -translate-x-1/2 items-center gap-2 rounded-full border border-white/15 bg-[#050b18]/85 p-1.5 shadow-[0_12px_36px_rgba(0,0,0,0.65)] backdrop-blur-xl transition-all duration-500 ease-out md:hidden ${
+          hasScrolled
+            ? "pointer-events-auto translate-y-0 opacity-100"
+            : "pointer-events-none translate-y-8 opacity-0"
+        }`}
+      >
+        {quickLinks.map((item) => (
+          <a
+            key={item.label}
+            href={item.href}
+            title={item.label}
+            aria-label={item.label}
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.06] text-white/85 transition active:scale-90 active:border-cyan-300/50 active:text-cyan-200"
+          >
+            <SidebarIcon type={item.icon} />
           </a>
         ))}
       </nav>

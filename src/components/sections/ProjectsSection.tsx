@@ -257,7 +257,7 @@ function ProjectPreviewFrame({ project }: { project: ProjectItem }) {
 
 function TimelineInfo({ project }: { project: ProjectItem }) {
   return (
-    <div className="relative flex min-h-[154px] gap-4 lg:block lg:pl-[70px]">
+    <div className="relative flex min-h-0 items-center gap-3 pb-3 lg:pb-0 lg:block lg:min-h-[154px] lg:pl-[70px]">
       <div className="relative z-10 grid h-10 w-10 shrink-0 place-items-center rounded-full border border-cyan-300/25 bg-[#071326] shadow-[0_0_0_5px_rgba(34,211,238,0.04),0_0_24px_rgba(34,211,238,0.12)] lg:absolute lg:left-0 lg:top-3">
         <span className="h-2.5 w-2.5 rounded-full bg-cyan-200/80 shadow-[0_0_18px_rgba(103,232,249,0.8)]" />
       </div>

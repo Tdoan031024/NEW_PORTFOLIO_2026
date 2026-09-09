@@ -242,7 +242,7 @@ export default function HeroSection() {
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.05 }}
-            className="mt-5 whitespace-nowrap text-[clamp(1.42rem,5vw,2.65rem)] font-semibold leading-[1.05] text-ink lg:text-[clamp(2.15rem,3.35vw,3rem)]"
+            className="mt-5 break-words sm:whitespace-nowrap text-[clamp(1.35rem,4.8vw,2.65rem)] font-semibold leading-[1.15] sm:leading-[1.05] text-ink lg:text-[clamp(2.15rem,3.35vw,3rem)]"
           >
             <span className="bg-gradient-to-r from-white via-cyan-100 to-blue-200 bg-clip-text text-transparent">
               {text}
@@ -291,7 +291,7 @@ export default function HeroSection() {
             onMouseMove={handleMouseMove}
             onMouseEnter={() => setIsHoveringAvatar(true)}
             onMouseLeave={handleMouseLeave}
-            className="relative h-[360px] w-[min(92vw,430px)] md:h-[460px] md:w-[460px]"
+            className="relative h-[340px] w-[min(90vw,380px)] sm:h-[400px] sm:w-[400px] md:h-[460px] md:w-[460px]"
             style={{ perspective: "1000px" }}
           >
             <motion.div

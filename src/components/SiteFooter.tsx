@@ -2,7 +2,7 @@
 
 export default function SiteFooter() {
   return (
-    <footer className="border-t border-white/10 bg-transparent px-6 pb-10 pt-6 md:px-16">
+    <footer className="border-t border-white/10 bg-transparent px-4 pb-20 pt-6 sm:px-8 md:px-16 md:pb-10">
       <div className="mx-auto grid max-w-7xl gap-8 md:grid-cols-[1.4fr_1fr] md:items-start">
         <div>
           <p className="text-sm font-semibold tracking-[0.28em] text-white">DOAN</p>

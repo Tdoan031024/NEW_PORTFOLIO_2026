@@ -55,9 +55,9 @@ export default function ContactSection() {
   };
 
   return (
-    <section id="contact" className="relative overflow-hidden bg-transparent px-6 pb-10 pt-24 md:px-16">
+    <section id="contact" className="relative overflow-hidden bg-transparent px-4 pb-12 pt-16 sm:px-8 md:px-16 md:pt-24">
       <div className="relative mx-auto max-w-7xl">
-        <div className="relative min-h-[520px]">
+        <div className="relative min-h-0 md:min-h-[520px]">
           <div className="grid items-center gap-8 lg:grid-cols-[1fr_1.02fr]">
             <motion.div
               initial={false}
@@ -66,10 +66,10 @@ export default function ContactSection() {
               transition={{ duration: 0.85, ease: "easeOut" }}
               className={isMobile ? "" : "lg:pr-6"}
             >
-              <h2 className="text-4xl font-black tracking-[-0.03em] text-white md:text-5xl">
+              <h2 className="text-3xl sm:text-4xl font-black tracking-[-0.03em] text-white md:text-5xl">
                 Let&apos;s build what&apos;s next.
               </h2>
-              <p className="mt-5 max-w-xl text-[16px] leading-8 text-white/70">
+              <p className="mt-5 max-w-xl text-[15px] sm:text-[16px] leading-7 sm:leading-8 text-white/70">
                 Have a role, project, or idea in mind? Let&apos;s turn it into a modern, scalable, and meaningful digital product.
               </p>
               <div className="mt-7 space-y-2 text-sm text-white/60">
@@ -85,7 +85,7 @@ export default function ContactSection() {
               whileInView={{ opacity: 1, x: 0, y: 0 }}
               viewport={{ once: true, amount: 0.3 }}
               transition={{ duration: 0.8, delay: isMobile ? 0.1 : 0.25, ease: "easeOut" }}
-              className="rounded-3xl border border-white/10 bg-[linear-gradient(180deg,rgba(10,18,36,0.9),rgba(6,12,28,0.9))] p-6 shadow-[0_18px_44px_rgba(0,0,0,0.33)] md:p-8"
+              className="rounded-3xl border border-white/10 bg-[linear-gradient(180deg,rgba(10,18,36,0.9),rgba(6,12,28,0.9))] p-5 sm:p-6 shadow-[0_18px_44px_rgba(0,0,0,0.33)] md:p-8"
             >
               <div className="grid gap-4 md:grid-cols-2">
                 <input

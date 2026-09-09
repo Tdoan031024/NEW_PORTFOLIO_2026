@@ -323,7 +323,8 @@ const galaxyStyles = `
 .skills-heading { position: absolute; top: -9px; left: 50%; transform: translateX(-50%); z-index: 120; text-align: center; pointer-events: none; }
 .skills-heading h2 { margin: 0; font-size: clamp(1.1rem, 2.2vw, 1.9rem); font-weight: 700; letter-spacing: 0; color: rgba(236, 247, 255, 0.96); text-shadow: 0 0 16px rgba(53, 234, 255, 0.28); }
 @media (max-width: 1100px) { .galaxy-frame { width: 1120px; transform: scale(.8); } .tech-galaxy { min-height: 700px; } }
-@media (max-width: 760px) { .tech-galaxy { min-height: 920px; place-items: start center; padding-top: 18px; } .galaxy-frame { width: 980px; min-height: 700px; transform: scale(.56); transform-origin: top center; } .position-recorder { margin-top: -160px; } .mobile-hint { display: block; } }
+@media (max-width: 760px) { .tech-galaxy { min-height: 720px; place-items: start center; padding-top: 18px; overflow: hidden; } .galaxy-frame { width: 980px; min-height: 700px; transform: scale(min(0.56, calc((100vw - 20px) / 980))); transform-origin: top center; } .position-recorder { margin-top: -160px; } .mobile-hint { display: block; } }
+@media (max-width: 480px) { .tech-galaxy { min-height: 520px; } .galaxy-frame { transform: scale(calc((100vw - 16px) / 980)); } }
 `;
 
 export default function SkillsSection() {

@@ -39,7 +39,10 @@
   scroll-behavior: smooth;
 }
 
+html,
 body {
+  overflow-x: hidden;
+  max-width: 100vw;
   background: var(--void);
   color: var(--ink);
   font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
