@@ -213,18 +213,24 @@ export default function HeroThree({
       introStartZ,
     );
 
-    const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
-    controls.enablePan = false;
-    controls.enableZoom = false;
-    controls.minDistance = 1.6;
-    controls.maxDistance = 6;
-    controls.enabled = enableControls && !isCoarsePointer;
-    if (initialTarget) {
-      controls.target.set(initialTarget.x, initialTarget.y, initialTarget.z);
+    let controls: OrbitControls | null = null;
+    const canUseControls = Boolean(enableControls && !isCoarsePointer);
+    if (canUseControls) {
+      controls = new OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.enablePan = false;
+      controls.enableZoom = false;
+      controls.minDistance = 1.6;
+      controls.maxDistance = 6;
+      controls.enabled = true;
+      if (initialTarget) {
+        controls.target.set(initialTarget.x, initialTarget.y, initialTarget.z);
+      }
     }
+    renderer.domElement.style.touchAction = canUseControls ? "none" : "pan-y";
+
     const syncCameraTarget = () => {
-      if (!initialTarget || controls.enabled) return;
+      if (!initialTarget || controls?.enabled) return;
       camera.lookAt(initialTarget.x, initialTarget.y, initialTarget.z);
     };
     syncCameraTarget();
@@ -437,6 +443,14 @@ export default function HeroThree({
       renderer.domElement.style.cursor = "default";
     };
 
+    let pointerDownPos = { x: 0, y: 0 };
+
+    const handlePointerDown = (event: PointerEvent) => {
+      pointerDownPos = { x: event.clientX, y: event.clientY };
+      if (!modelRoot) return;
+      isPointerDownOnModel = true;
+    };
+
     const handlePointerUp = () => {
       isPointerDownOnModel = false;
       if (!hovered) {
@@ -446,8 +460,12 @@ export default function HeroThree({
       }
     };
 
-    const handleClick = (event: PointerEvent) => {
+    const handleClick = (event: MouseEvent) => {
       if (!modelRoot) return;
+      // If user moved finger/cursor more than 12px, it was a scroll/drag, not a click
+      const moveDist = Math.hypot(event.clientX - pointerDownPos.x, event.clientY - pointerDownPos.y);
+      if (moveDist > 12) return;
+
       const rect = renderer.domElement.getBoundingClientRect();
       pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
       pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
@@ -455,11 +473,6 @@ export default function HeroThree({
       raycaster.setFromCamera(pointer, camera);
       const hits = raycaster.intersectObject(modelRoot, true);
       const hitTarget = hits.length ? resolveTargetByName(hits[0].object) : {};
-      isPointerDownOnModel = hits.length > 0;
-
-      if (isPointerDownOnModel && !hitTarget.nav && !hitTarget.external && !hitTarget.ball) {
-        renderer.domElement.style.cursor = "grabbing";
-      }
 
       if (hitTarget.ball) {
         ballBounceStartAt = performance.now();
@@ -482,7 +495,8 @@ export default function HeroThree({
         renderer.domElement.addEventListener("pointermove", handlePointerMove);
         renderer.domElement.addEventListener("pointerleave", handlePointerLeave);
       }
-      renderer.domElement.addEventListener("pointerdown", handleClick);
+      renderer.domElement.addEventListener("pointerdown", handlePointerDown);
+      renderer.domElement.addEventListener("click", handleClick);
       window.addEventListener("pointerup", handlePointerUp);
     }
 
@@ -595,7 +609,7 @@ export default function HeroThree({
         group.rotation.y = Math.sin(performance.now() * 0.0004) * 0.08;
         group.rotation.x = Math.sin(performance.now() * 0.0003) * 0.04;
       }
-      if (controls.enabled) controls.update();
+      if (controls?.enabled) controls.update();
       renderer.render(scene, camera);
       rafId = window.requestAnimationFrame(animate);
     };
@@ -641,11 +655,12 @@ export default function HeroThree({
           renderer.domElement.removeEventListener("pointermove", handlePointerMove);
           renderer.domElement.removeEventListener("pointerleave", handlePointerLeave);
         }
-        renderer.domElement.removeEventListener("pointerdown", handleClick);
+        renderer.domElement.removeEventListener("pointerdown", handlePointerDown);
+        renderer.domElement.removeEventListener("click", handleClick);
         window.removeEventListener("pointerup", handlePointerUp);
       }
       window.cancelAnimationFrame(rafId);
-      controls.dispose();
+      controls?.dispose();
 
       scene.traverse((child) => {
         if (!(child as THREE.Mesh).isMesh) return;

@@ -29,9 +29,9 @@ export default function RootLayout({
   return (
     <html
       lang="vi"
-      className={`${sora.variable} ${ibmPlexMono.variable} h-full antialiased`}
+      className={`${sora.variable} ${ibmPlexMono.variable} antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-void text-ink">
+      <body className="min-h-screen flex flex-col bg-void text-ink">
         <AppProviders>{children}</AppProviders>
       </body>
     </html>
