@@ -27,10 +27,19 @@ export default function CustomCursor() {
     let rafId = 0;
     let rid = 0;
 
+    let isTicking = false;
+
     const setHoverState = (hover: boolean) => {
       coreRef.current?.classList.toggle("is-hover", hover);
       ringARef.current?.classList.toggle("is-hover", hover);
       ringBRef.current?.classList.toggle("is-hover", hover);
+    };
+
+    const startTicking = () => {
+      if (!isTicking) {
+        isTicking = true;
+        rafId = window.requestAnimationFrame(tick);
+      }
     };
 
     const onMove = (e: MouseEvent) => {
@@ -43,6 +52,7 @@ export default function CustomCursor() {
         "a, button, input, textarea, select, [role='button'], [data-cursor='hover']",
       );
       setHoverState(Boolean(interactive));
+      startTicking();
     };
 
     const onDown = (e: MouseEvent) => {
@@ -54,25 +64,42 @@ export default function CustomCursor() {
     };
 
     const tick = () => {
-      aX += (mouseX - aX) * 0.2;
-      aY += (mouseY - aY) * 0.2;
-      bX += (mouseX - bX) * 0.1;
-      bY += (mouseY - bY) * 0.1;
+      const dAx = mouseX - aX;
+      const dAy = mouseY - aY;
+      const dBx = mouseX - bX;
+      const dBy = mouseY - bY;
+
+      aX += dAx * 0.22;
+      aY += dAy * 0.22;
+      bX += dBx * 0.12;
+      bY += dBy * 0.12;
 
       ringARef.current?.style.setProperty("transform", `translate3d(${aX}px, ${aY}px, 0)`);
       ringBRef.current?.style.setProperty("transform", `translate3d(${bX}px, ${bY}px, 0)`);
+
+      if (
+        Math.abs(dAx) < 0.15 &&
+        Math.abs(dAy) < 0.15 &&
+        Math.abs(dBx) < 0.15 &&
+        Math.abs(dBy) < 0.15
+      ) {
+        isTicking = false;
+        rafId = 0;
+        return;
+      }
+
       rafId = window.requestAnimationFrame(tick);
     };
 
     window.addEventListener("mousemove", onMove);
     window.addEventListener("mousedown", onDown);
-    rafId = window.requestAnimationFrame(tick);
+    startTicking();
 
     return () => {
       document.body.classList.remove("custom-cursor-enabled");
       window.removeEventListener("mousemove", onMove);
       window.removeEventListener("mousedown", onDown);
-      window.cancelAnimationFrame(rafId);
+      if (rafId) window.cancelAnimationFrame(rafId);
     };
   }, []);
 

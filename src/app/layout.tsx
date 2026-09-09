@@ -31,15 +31,6 @@ export default function RootLayout({
       lang="vi"
       className={`${sora.variable} ${ibmPlexMono.variable} h-full antialiased`}
     >
-      <head>
-        <link
-          rel="preload"
-          href="/assets/models/room_IT_3d.glb"
-          as="fetch"
-          type="model/gltf-binary"
-          crossOrigin="anonymous"
-        />
-      </head>
       <body className="min-h-full flex flex-col bg-void text-ink">
         <AppProviders>{children}</AppProviders>
       </body>

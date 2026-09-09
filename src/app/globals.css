@@ -173,8 +173,10 @@ main > section {
 
 .glass {
   background: var(--glass);
-  backdrop-filter: blur(18px);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--stroke);
+  transform: translateZ(0);
 }
 
 .neon-ring {

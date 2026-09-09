@@ -31,12 +31,14 @@ export default function GlobalStarfield() {
     const ctx = canvas.getContext("2d", { alpha: true });
     if (!ctx) return;
 
+    const isCoarse = window.matchMedia("(pointer: coarse)").matches;
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const lowPower =
+      isCoarse ||
       (((navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? 8) <= 4) ||
       (navigator.hardwareConcurrency ?? 8) <= 4;
-    const maxDpr = lowPower ? 1 : 1.25;
-    const starCount = reducedMotion ? 45 : lowPower ? 85 : 125;
+    const maxDpr = lowPower ? 1 : 1.2;
+    const starCount = reducedMotion ? 24 : isCoarse ? 36 : lowPower ? 48 : 72;
     const stars: CanvasStar[] = [];
     let width = 0;
     let height = 0;
@@ -49,10 +51,10 @@ export default function GlobalStarfield() {
         stars.push({
           x: Math.random() * width,
           y: Math.random() * height,
-          radius: 0.6 + Math.random() * 1.8,
+          radius: 0.6 + Math.random() * 1.6,
           color: STAR_COLORS[Math.floor(Math.random() * STAR_COLORS.length)],
           phase: Math.random() * Math.PI * 2,
-          speed: 0.0012 + Math.random() * 0.0022,
+          speed: 0.001 + Math.random() * 0.002,
         });
       }
     };
@@ -70,7 +72,7 @@ export default function GlobalStarfield() {
     };
 
     const draw = (time: number) => {
-      if (!visible) {
+      if (!visible || document.hidden) {
         rafId = 0;
         return;
       }
@@ -79,16 +81,22 @@ export default function GlobalStarfield() {
       for (const star of stars) {
         const pulse = reducedMotion ? 0.75 : 0.45 + Math.sin(time * star.speed + star.phase) * 0.35;
         const alpha = Math.max(0.18, Math.min(0.95, pulse));
-        ctx.globalAlpha = alpha;
-        ctx.shadowColor = star.color;
-        ctx.shadowBlur = 10;
         ctx.fillStyle = star.color;
+
+        // Efficient soft halo without expensive ctx.shadowBlur
+        if (star.radius > 1.3) {
+          ctx.globalAlpha = alpha * 0.25;
+          ctx.beginPath();
+          ctx.arc(star.x, star.y, star.radius * 2.2, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        ctx.globalAlpha = alpha;
         ctx.beginPath();
         ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
         ctx.fill();
       }
       ctx.globalAlpha = 1;
-      ctx.shadowBlur = 0;
 
       if (!reducedMotion) {
         rafId = window.requestAnimationFrame(draw);
@@ -97,10 +105,21 @@ export default function GlobalStarfield() {
       }
     };
 
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        if (rafId) {
+          window.cancelAnimationFrame(rafId);
+          rafId = 0;
+        }
+      } else if (visible && !rafId && !reducedMotion) {
+        rafId = window.requestAnimationFrame(draw);
+      }
+    };
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         visible = entry.isIntersecting;
-        if (visible && !rafId && !reducedMotion) {
+        if (visible && !rafId && !reducedMotion && !document.hidden) {
           rafId = window.requestAnimationFrame(draw);
         }
       },
@@ -115,10 +134,12 @@ export default function GlobalStarfield() {
       rafId = window.requestAnimationFrame(draw);
     }
     window.addEventListener("resize", resize);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
       observer.disconnect();
       window.removeEventListener("resize", resize);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
       if (rafId) window.cancelAnimationFrame(rafId);
     };
   }, []);

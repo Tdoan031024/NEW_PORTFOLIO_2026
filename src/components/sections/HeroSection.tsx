@@ -341,7 +341,7 @@ export default function HeroSection() {
                     <div
                       aria-label={item.label}
                       title={item.label}
-                      className="flex h-9 w-9 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-2xl border border-white/10 bg-[#071124d9] shadow-[0_0_24px_rgba(34,211,238,0.16)] backdrop-blur-md transition duration-300 group-hover:border-white/18 group-hover:bg-[#0a1630f0] md:h-11 md:w-11"
+                      className="flex h-9 w-9 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-2xl border border-cyan-500/25 bg-[#071124] shadow-[0_0_18px_rgba(34,211,238,0.18)] transition duration-200 group-hover:border-cyan-400/40 group-hover:bg-[#0a1630] md:h-11 md:w-11"
                       style={{ color: item.color }}
                     >
                       {item.icon}

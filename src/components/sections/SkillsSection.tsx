@@ -249,6 +249,7 @@ function Icon({ type }: { type: string }): ReactNode {
 const galaxyStyles = `
 .tech-galaxy { position: relative; z-index: 6; width: 100%; min-height: 90vh; overflow: hidden; display: grid; place-items: center; background: transparent; isolation: auto; }
 .tech-galaxy.is-paused *, .tech-galaxy.is-reduced * { animation-play-state: paused !important; }
+.tech-galaxy.is-paused .star-layer { display: none; }
 .tech-galaxy.is-reduced .star-layer, .tech-galaxy.is-reduced .connect-layer:not(.hub-connectors) { display: none; }
 .tech-galaxy::before, .tech-galaxy::after { content: none; }
 @keyframes starDrift { from { transform: translate3d(0,0,0); } to { transform: translate3d(-110px,80px,0); } }
@@ -712,18 +713,20 @@ export default function SkillsSection() {
             ))}
           </div>
 
-          <svg className="connect-layer layer-svg" viewBox="0 0 1600 900" preserveAspectRatio="none" aria-hidden="true">
-            {movingDots.map((item) => (
-              <g key={item.id}>
-                <path id={item.id} d={`M ${800 - item.rx} 455 a ${item.rx} ${item.ry} 0 1 0 ${item.rx * 2} 0 a ${item.rx} ${item.ry} 0 1 0 -${item.rx * 2} 0`} fill="none" stroke="transparent" />
-                <circle r="4" fill={item.color} style={{ filter: `drop-shadow(0 0 10px ${item.color}) drop-shadow(0 0 22px ${item.color})` }}>
-                  <animateMotion dur={item.dur} begin={item.begin} repeatCount="indefinite">
-                    <mpath href={`#${item.id}`} />
-                  </animateMotion>
-                </circle>
-              </g>
-            ))}
-          </svg>
+          {isSectionVisible && (
+            <svg className="connect-layer layer-svg" viewBox="0 0 1600 900" preserveAspectRatio="none" aria-hidden="true">
+              {movingDots.map((item) => (
+                <g key={item.id}>
+                  <path id={item.id} d={`M ${800 - item.rx} 455 a ${item.rx} ${item.ry} 0 1 0 ${item.rx * 2} 0 a ${item.rx} ${item.ry} 0 1 0 -${item.rx * 2} 0`} fill="none" stroke="transparent" />
+                  <circle r="4" fill={item.color} style={{ filter: `drop-shadow(0 0 8px ${item.color})` }}>
+                    <animateMotion dur={item.dur} begin={item.begin} repeatCount="indefinite">
+                      <mpath href={`#${item.id}`} />
+                    </animateMotion>
+                  </circle>
+                </g>
+              ))}
+            </svg>
+          )}
 
           <div className="node-layer">
             {editableGroups.flatMap((group, groupIndex) =>
