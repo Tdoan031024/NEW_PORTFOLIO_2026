@@ -247,7 +247,7 @@ function Icon({ type }: { type: string }): ReactNode {
 }
 
 const galaxyStyles = `
-.tech-galaxy { position: relative; z-index: 6; width: 100%; min-height: 90vh; overflow: hidden; display: grid; place-items: center; background: transparent; isolation: auto; }
+.tech-galaxy { position: relative; z-index: 6; width: 100%; min-height: 85vh; overflow: visible; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; background: transparent; isolation: auto; }
 .tech-galaxy.is-paused *, .tech-galaxy.is-reduced * { animation-play-state: paused !important; }
 .tech-galaxy.is-paused .star-layer { display: none; }
 .tech-galaxy.is-reduced .star-layer, .tech-galaxy.is-reduced .connect-layer:not(.hub-connectors) { display: none; }
@@ -256,7 +256,7 @@ const galaxyStyles = `
 @keyframes nebulaPulse { from { opacity: .55; transform: scale(1); } to { opacity: .95; transform: scale(1.03); } }
 .corner-scan { display: none; }
 @keyframes scan { 0% { transform: translateY(-140px); } 100% { transform: translateY(calc(100vh + 140px)); } }
-.galaxy-frame { position: relative; width: min(100vw, 1500px); aspect-ratio: 16 / 9; min-height: 590px; margin-top: 44px; transform-origin: center; user-select: none; contain: layout paint style; }
+.galaxy-frame { position: relative; width: min(100vw, 1500px); aspect-ratio: 16 / 9; min-height: 590px; margin-top: 16px; transform-origin: center; user-select: none; contain: layout paint style; }
 .galaxy-frame::before, .galaxy-frame::after { content: none; }
 .hud-vignette { display: none; }
 .orbit-layer, .connect-layer, .node-layer, .label-layer, .core-layer, .star-layer { position: absolute; inset: 0; }
@@ -278,7 +278,7 @@ const galaxyStyles = `
 .hub-connectors { display: none; }
 .star { position: absolute; border-radius: 50%; opacity: .78; box-shadow: 0 0 8px currentColor; animation: twinkle linear infinite; }
 @keyframes twinkle { 0%,100% { transform: scale(.8); opacity:.45; } 50% { transform: scale(1.25); opacity:1; } }
-.tech-node { position: absolute; left: var(--x); top: var(--y); width: var(--size); height: var(--size); transform: translate(-50%, -50%) scale(.66); opacity: 0; display: grid; place-items: center; cursor: grab; touch-action: none; user-select: none; animation: nodeIntro .62s cubic-bezier(.18,.89,.32,1.28) forwards; animation-delay: var(--delay); transition: transform .22s ease, opacity .22s ease, filter .22s ease; border: none; background: none; padding: 0; contain: layout style; will-change: transform, filter; }
+.tech-node { position: absolute; left: var(--x); top: var(--y); width: var(--size); height: var(--size); transform: translate(-50%, -50%) scale(.66); opacity: 0; display: grid; place-items: center; cursor: grab; touch-action: pan-y; user-select: none; animation: nodeIntro .62s cubic-bezier(.18,.89,.32,1.28) forwards; animation-delay: var(--delay); transition: transform .22s ease, opacity .22s ease, filter .22s ease; border: none; background: none; padding: 0; contain: layout style; will-change: transform, filter; }
 @keyframes nodeIntro { to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
 .tech-galaxy.has-active-group .tech-node:not(.is-highlighted) { opacity: .38; filter: brightness(.62) saturate(.58); }
 .tech-node:hover, .tech-node.is-highlighted { transform: translate(-50%, -50%) scale(1.1); z-index: 80; filter: brightness(1.1) saturate(1.06) drop-shadow(0 0 10px var(--color)) drop-shadow(0 0 22px color-mix(in srgb, var(--color) 58%, transparent)); }
@@ -301,7 +301,7 @@ const galaxyStyles = `
 .node-name { position: absolute; left: 50%; top: calc(100% + 7px); transform: translateX(-50%); min-width: 92px; text-align: center; font-size: clamp(9px, .66vw, 12px); font-weight: 700; color: rgba(241,251,255,.88); text-shadow: 0 0 8px rgba(255,255,255,.35), 0 0 14px var(--color); pointer-events: none; }
 .tech-node.is-highlighted .node-icon { transform: scale(1.04); filter: drop-shadow(0 0 7px currentColor) drop-shadow(0 0 16px var(--color)); }
 .tech-node:hover .node-name, .tech-node.is-highlighted .node-name { color: white; text-shadow: 0 0 6px rgba(255,255,255,.85), 0 0 14px var(--color), 0 0 24px var(--color2); }
-.group-label { position: absolute; left: var(--x); top: var(--y); transform: translate(-50%, -50%); display: inline-flex; align-items: center; gap: 10px; min-height: 34px; padding: 5px 14px 5px 6px; border: 1px solid rgba(255,255,255,.18); border-radius: 999px; background: linear-gradient(180deg, rgba(15,18,48,.75), rgba(5,8,24,.48)); box-shadow: 0 0 14px var(--color), inset 0 0 14px rgba(255,255,255,.035); backdrop-filter: blur(10px); pointer-events: auto; cursor: pointer; user-select: none; transition: transform .24s ease, box-shadow .24s ease; }
+.group-label { position: absolute; left: var(--x); top: var(--y); transform: translate(-50%, -50%); display: inline-flex; align-items: center; gap: 10px; min-height: 34px; padding: 5px 14px 5px 6px; border: 1px solid rgba(255,255,255,.18); border-radius: 999px; background: linear-gradient(180deg, rgba(15,18,48,.75), rgba(5,8,24,.48)); box-shadow: 0 0 14px var(--color), inset 0 0 14px rgba(255,255,255,.035); backdrop-filter: blur(10px); pointer-events: auto; cursor: pointer; user-select: none; touch-action: pan-y; transition: transform .24s ease, box-shadow .24s ease; }
 .group-label .number { width: 24px; height: 24px; display: grid; place-items: center; border-radius: 50%; color: var(--color); border: 1px solid rgba(255,255,255,.24); font-size: 12px; font-weight: 900; text-shadow: 0 0 12px var(--color); background: rgba(255,255,255,.04); }
 .group-label .label-text { color: #eef7ff; font-size: clamp(10px, .72vw, 13px); font-weight: 850; letter-spacing: .08em; text-shadow: 0 0 10px var(--color); white-space: nowrap; }
 .group-label:hover, .group-label.active { transform: translate(-50%, -50%) scale(1.06); box-shadow: 0 0 16px var(--color), 0 0 38px var(--color); }
@@ -321,11 +321,20 @@ const galaxyStyles = `
 .position-output { width: 100%; height: 220px; resize: vertical; border: 1px solid rgba(255,255,255,.12); border-radius: 12px; background: rgba(0,0,0,.32); padding: 10px; font-family: var(--font-mono), ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 11px; line-height: 1.55; color: rgba(238,247,255,.82); outline: none; }
 .position-hint { margin-top: 8px; font-size: 11px; line-height: 1.5; color: rgba(238,247,255,.58); }
 .mobile-hint { display: none; position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%); color: rgba(221,244,255,.68); font-size: 12px; z-index: 40; }
-.skills-heading { position: absolute; top: -9px; left: 50%; transform: translateX(-50%); z-index: 120; text-align: center; pointer-events: none; }
+.skills-heading { position: relative; z-index: 120; text-align: center; pointer-events: none; width: 100%; padding: 48px 16px 12px; }
 .skills-heading h2 { margin: 0; font-size: clamp(1.1rem, 2.2vw, 1.9rem); font-weight: 700; letter-spacing: 0; color: rgba(236, 247, 255, 0.96); text-shadow: 0 0 16px rgba(53, 234, 255, 0.28); }
 @media (max-width: 1100px) { .galaxy-frame { width: 1120px; transform: scale(.8); } .tech-galaxy { min-height: 700px; } }
-@media (max-width: 760px) { .tech-galaxy { min-height: 720px; place-items: start center; padding-top: 18px; overflow: hidden; } .galaxy-frame { width: 980px; min-height: 700px; transform: scale(min(0.56, calc((100vw - 20px) / 980))); transform-origin: top center; } .position-recorder { margin-top: -160px; } .mobile-hint { display: block; } }
-@media (max-width: 480px) { .tech-galaxy { min-height: 520px; } .galaxy-frame { transform: scale(calc((100vw - 16px) / 980)); } }
+@media (max-width: 760px) {
+  .tech-galaxy { min-height: 640px; padding-top: 0; overflow-x: clip; overflow-y: visible; }
+  .skills-heading { padding: 36px 16px 8px; }
+  .galaxy-frame { width: 980px; min-height: 600px; margin-top: 4px; transform: scale(min(0.58, calc((100vw - 20px) / 980))); transform-origin: top center; }
+  .position-recorder { margin-top: -160px; }
+  .mobile-hint { display: block; bottom: 8px; }
+}
+@media (max-width: 480px) {
+  .tech-galaxy { min-height: 520px; }
+  .galaxy-frame { transform: scale(calc((100vw - 12px) / 980)); }
+}
 `;
 
 export default function SkillsSection() {
@@ -517,12 +526,9 @@ export default function SkillsSection() {
   const handleNodeTouchStart = (
     key: string,
     groupId: string,
-    event: ReactTouchEvent<HTMLButtonElement>,
   ) => {
-    const touch = event.touches[0];
-    if (!touch) return;
-    event.preventDefault();
-    startNodeDrag(key, groupId, touch.clientX, touch.clientY);
+    setActiveGroup(groupId);
+    setSelectedGroup(groupId);
   };
 
   const handleGroupLabelMouseDown = (
@@ -535,12 +541,9 @@ export default function SkillsSection() {
 
   const handleGroupLabelTouchStart = (
     groupId: string,
-    event: ReactTouchEvent<HTMLButtonElement>,
   ) => {
-    const touch = event.touches[0];
-    if (!touch) return;
-    event.preventDefault();
-    startGroupLabelDrag(groupId, touch.clientX, touch.clientY);
+    setActiveGroup(groupId);
+    setSelectedGroup(groupId);
   };
 
   useEffect(() => {
@@ -742,7 +745,7 @@ export default function SkillsSection() {
                       draggingNodeKey === key ? "is-dragging" : ""
                     }`}
                     onMouseDown={(event) => handleNodeMouseDown(key, group.id, event)}
-                    onTouchStart={(event) => handleNodeTouchStart(key, group.id, event)}
+                    onTouchStart={() => handleNodeTouchStart(key, group.id)}
                     style={
                       {
                         "--x": `${node.x}%`,
@@ -784,7 +787,7 @@ export default function SkillsSection() {
                   } as CSSProperties
                 }
                 onMouseDown={(event) => handleGroupLabelMouseDown(group.id, event)}
-                onTouchStart={(event) => handleGroupLabelTouchStart(group.id, event)}
+                onTouchStart={() => handleGroupLabelTouchStart(group.id)}
                 onClick={() => setSelectedGroup((current) => (current === group.id ? null : group.id))}
                 onMouseEnter={() => setActiveGroup(group.id)}
                 onMouseLeave={() => setActiveGroup(null)}
