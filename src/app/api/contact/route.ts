@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import pool from "@/lib/db";
-import type { ResultSetHeader } from "mysql2";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 
 export async function POST(request: NextRequest) {
   try {
@@ -45,15 +44,34 @@ export async function POST(request: NextRequest) {
     const cleanSubject =
       subject && typeof subject === "string" ? subject.slice(0, 200) : null;
 
-    // Insert into MySQL
-    const [result] = await pool.execute<ResultSetHeader>(
-      "INSERT INTO contact_messages (name, email, subject, message) VALUES (?, ?, ?, ?)",
-      [name.trim(), email.trim(), cleanSubject, message.trim()]
-    );
+    // Save to Cloudflare D1
+    let savedToD1 = false;
+    try {
+      const { env } = await getCloudflareContext({ async: true });
+      if (env?.DB) {
+        await env.DB.prepare(
+          "INSERT INTO contact_messages (name, email, subject, message, created_at) VALUES (?, ?, ?, ?, datetime('now'))"
+        )
+          .bind(name.trim(), email.trim(), cleanSubject, message.trim())
+          .run();
+        savedToD1 = true;
+      }
+    } catch {
+      // Local development fallback when D1 is not bound
+    }
+
+    if (!savedToD1) {
+      console.log("Contact message received (dev mode):", {
+        name: name.trim(),
+        email: email.trim(),
+        subject: cleanSubject,
+        message: message.trim(),
+        timestamp: new Date().toISOString(),
+      });
+    }
 
     return NextResponse.json(
       {
-        id: result.insertId,
         name: name.trim(),
         email: email.trim(),
         subject: cleanSubject,
