@@ -110,6 +110,7 @@ const TECH_NODES: TechNode[] = [
 const guideVersion = "portfolio-guides-2026-05-22-v3";
 const guideAnimationDuration = 6800;
 const guideFadeDuration = 700;
+const AUTO_SHOW_GUIDES = false; // Tạm thời ẩn gợi ý
 
 function clampTilt(value: number, max = 7) {
   return Math.max(-max, Math.min(max, value));
@@ -150,6 +151,12 @@ export default function HeroSection() {
     if (isEditingGuides) {
       setModelGuideMounted(true);
       setModelGuideVisible(true);
+      return;
+    }
+
+    if (!AUTO_SHOW_GUIDES) {
+      setModelGuideMounted(false);
+      setModelGuideVisible(false);
       return;
     }
 
@@ -278,6 +285,18 @@ export default function HeroSection() {
               className="rounded-full bg-cyan-300 px-5 py-3 text-sm font-semibold text-slate-950 shadow-[0_14px_34px_rgba(34,211,238,.18)] transition hover:-translate-y-0.5 hover:bg-cyan-200"
             >
               View Projects
+            </a>
+            <a
+              href="/assets/file/Fullstack_Developer-Do_Van_Tuyen_Doan.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              download="Fullstack_Developer-Do_Van_Tuyen_Doan.pdf"
+              className="inline-flex items-center gap-2 rounded-full border border-cyan-300/40 bg-cyan-950/30 px-5 py-3 text-sm font-semibold text-cyan-200 shadow-[0_0_24px_rgba(34,211,238,.12)] backdrop-blur-sm transition hover:-translate-y-0.5 hover:border-cyan-300 hover:bg-cyan-900/40 hover:text-white"
+            >
+              <svg className="h-4 w-4 text-cyan-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <span>{t("downloadCv")}</span>
             </a>
             <a
               href="#contact"

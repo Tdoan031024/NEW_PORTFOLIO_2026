@@ -53,90 +53,70 @@ body {
   -webkit-overflow-scrolling: touch;
 }
 
-@media (pointer: fine) {
-  body.custom-cursor-enabled,
-  body.custom-cursor-enabled * {
+/* Custom star cursor effect overlay */
+@media (hover: hover) and (pointer: fine) {
+  body.custom-star-cursor-active,
+  body.custom-star-cursor-active * {
     cursor: none !important;
   }
 }
 
-.custom-cursor-core,
-.custom-cursor-ring-a,
-.custom-cursor-ring-b,
-.custom-cursor-ripple {
+.star-cursor-trail-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+.star-cursor-main {
   position: fixed;
   left: 0;
   top: 0;
   pointer-events: none;
   z-index: 10000;
-}
-
-.custom-cursor-core {
-  width: 7px;
-  height: 7px;
-  margin-left: -3.5px;
-  margin-top: -3.5px;
-  border-radius: 999px;
-  background: #ecfeff;
-  box-shadow: 0 0 12px rgba(34, 211, 238, 0.9), 0 0 20px rgba(56, 189, 248, 0.65);
-  transition: transform 0.16s ease;
-}
-
-.custom-cursor-ring-a {
   width: 26px;
   height: 26px;
-  margin-left: -13px;
-  margin-top: -13px;
-  border-radius: 999px;
-  border: 1px solid rgba(103, 232, 249, 0.75);
-  box-shadow: 0 0 20px rgba(34, 211, 238, 0.25);
-  transition: transform 0.2s ease, border-color 0.2s ease;
+  display: grid;
+  place-items: center;
+  filter: drop-shadow(0 0 6px #ffffff) drop-shadow(0 0 12px #35eaff) drop-shadow(0 0 18px rgba(155, 77, 255, 0.75));
+  transition: filter 0.2s ease, transform 0.05s ease-out;
+  will-change: transform;
 }
 
-.custom-cursor-ring-b {
-  width: 44px;
-  height: 44px;
-  margin-left: -22px;
-  margin-top: -22px;
-  border-radius: 999px;
-  border: 1px solid rgba(103, 232, 249, 0.28);
-  background: radial-gradient(circle, rgba(34, 211, 238, 0.06), transparent 70%);
-  transition: transform 0.25s ease, opacity 0.25s ease;
+.star-cursor-svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  animation: starTwinklePulse 3s ease-in-out infinite alternate;
 }
 
-.custom-cursor-core.is-hover {
-  transform: scale(1.45);
-}
-
-.custom-cursor-ring-a.is-hover {
-  transform: scale(1.25);
-  border-color: rgba(125, 250, 255, 1);
-}
-
-.custom-cursor-ring-b.is-hover {
-  transform: scale(1.18);
-  opacity: 0.9;
-}
-
-.custom-cursor-ripple {
-  width: 14px;
-  height: 14px;
-  margin-left: -7px;
-  margin-top: -7px;
-  border-radius: 999px;
-  border: 2px solid rgba(103, 232, 249, 0.7);
-  animation: cursor-ripple 0.52s ease-out forwards;
-}
-
-@keyframes cursor-ripple {
-  from {
-    opacity: 0.9;
-    transform: scale(0.7);
+@keyframes starTwinklePulse {
+  0% {
+    transform: scale(0.92) rotate(0deg);
+    opacity: 0.92;
   }
-  to {
-    opacity: 0;
-    transform: scale(2.6);
+  50% {
+    transform: scale(1.06) rotate(6deg);
+    opacity: 1;
   }
+  100% {
+    transform: scale(0.95) rotate(-4deg);
+    opacity: 0.95;
+  }
+}
+
+.star-cursor-main.is-hover {
+  filter: drop-shadow(0 0 8px #ffffff) drop-shadow(0 0 16px #35eaff) drop-shadow(0 0 24px #ff4ecd);
+}
+
+.star-cursor-main.is-hover .star-cursor-svg {
+  transform: scale(1.3) rotate(20deg);
+}
+
+.star-cursor-main.is-active .star-cursor-svg {
+  transform: scale(0.8) rotate(45deg);
 }
 
 .page-shell {

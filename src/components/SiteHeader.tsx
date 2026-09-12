@@ -16,6 +16,7 @@ const quickLinks = [
 const guideVersion = "portfolio-guides-2026-05-22-v3";
 const guideAnimationDuration = 6800;
 const guideFadeDuration = 700;
+const AUTO_SHOW_GUIDES = false; // Tạm thời ẩn gợi ý
 
 function SidebarIcon({ type }: { type: (typeof quickLinks)[number]["icon"] }) {
   if (type === "user") {
@@ -79,14 +80,20 @@ export default function SiteHeader() {
 
   useEffect(() => {
     setMounted(true);
-  }, []);
 
-  useEffect(() => {
+    const onComplete = () => {
+      window.setTimeout(() => setVisible(true), 200);
+    };
+    window.addEventListener("intro-preloader-complete", onComplete);
+
     const timer = window.setTimeout(() => {
       setVisible(true);
-    }, 1000);
+    }, 3800);
 
-    return () => window.clearTimeout(timer);
+    return () => {
+      window.removeEventListener("intro-preloader-complete", onComplete);
+      window.clearTimeout(timer);
+    };
   }, []);
 
   useEffect(() => {
@@ -110,6 +117,12 @@ export default function SiteHeader() {
     if (isEditingGuides) {
       setSidebarGuideMounted(true);
       setSidebarGuideVisible(true);
+      return;
+    }
+
+    if (!AUTO_SHOW_GUIDES) {
+      setSidebarGuideMounted(false);
+      setSidebarGuideVisible(false);
       return;
     }
 
@@ -171,9 +184,18 @@ export default function SiteHeader() {
             <GoogleTranslate />
             {/* Tạm thời ẩn nút chuyển theme, mặc định dùng dark mode */}
             {/* <ThemeToggle /> */}
-            <button className="rounded-full border border-cyan-200/55 bg-cyan-300/18 px-3 py-1.5 sm:px-4 sm:py-2 text-[11px] sm:text-xs font-semibold text-cyan-100 shadow-[0_0_22px_rgba(34,211,238,0.22)] transition hover:bg-cyan-300/28">
-              {t("downloadCv")}
-            </button>
+            <a
+              href="/assets/file/Fullstack_Developer-Do_Van_Tuyen_Doan.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              download="Fullstack_Developer-Do_Van_Tuyen_Doan.pdf"
+              className="inline-flex items-center gap-1.5 rounded-full border border-cyan-200/55 bg-cyan-300/18 px-3 py-1.5 sm:px-4 sm:py-2 text-[11px] sm:text-xs font-semibold text-cyan-100 shadow-[0_0_22px_rgba(34,211,238,0.22)] transition hover:bg-cyan-300/28 hover:scale-[1.02] active:scale-95"
+            >
+              <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <span>{t("downloadCv")}</span>
+            </a>
           </div>
         </div>
       </header>

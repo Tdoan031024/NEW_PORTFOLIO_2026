@@ -14,6 +14,7 @@ const guideVersion = "portfolio-guides-2026-05-22-v3";
 const guideShowDelay = 1800;
 const guideAnimationDuration = 7200;
 const guideFadeDuration = 700;
+const AUTO_SHOW_GUIDES = false; // Tạm thời ẩn các gợi ý chỉ dẫn theo yêu cầu
 
 export default function IntroModelSection() {
   const [isEditingGuides, setIsEditingGuides] = useState(false);
@@ -48,6 +49,14 @@ export default function IntroModelSection() {
     window.dispatchEvent(
       new CustomEvent("guide-edit-mode-toggle", { detail: { editing: false } }),
     );
+
+    if (!AUTO_SHOW_GUIDES) {
+      setPanelGuidesMounted(false);
+      setPanelGuidesVisible(false);
+      setContactGuideMounted(false);
+      setContactGuideVisible(false);
+      return;
+    }
 
     const showPanelTimer = window.setTimeout(() => {
       setPanelGuidesMounted(true);

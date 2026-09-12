@@ -12,13 +12,15 @@ import {
 } from "react";
 import Image from "next/image";
 import {
+  siApachekafka,
+  siCloudflare,
   siDocker,
   siDotnet,
   siExpress,
-  siFirebase,
+  siGin,
   siGit,
   siGithubactions,
-  siGooglecloud,
+  siGo,
   siJenkins,
   siLaravel,
   siMongodb,
@@ -27,11 +29,14 @@ import {
   siNextdotjs,
   siNodedotjs,
   siOpenapiinitiative,
-  siPhp,
+  siPostgresql,
   siPrisma,
   siReact,
+  siRedis,
   siSequelize,
+  siSwagger,
   siTailwindcss,
+  siTypescript,
 } from "simple-icons/icons";
 
 type OrbitName = "orbit1" | "orbit2" | "orbit3" | "orbit4" | "orbit5";
@@ -85,13 +90,14 @@ const GROUPS: GroupConfig[] = [
     label: "FRONTEND",
     color: "#35eaff",
     color2: "#9b4dff",
-    labelPos: { x: 49.3, y: 5.2 },
-    connectorEnd: { x: 49, y: 16 },
+    labelPos: { x: 50.3, y: 1.0 },
+    connectorEnd: { x: 49.4, y: 16 },
     nodes: [
-      { name: "React", icon: "react", x: 36.0, y: 13.7, size: 72, orbit: "orbit1" },
-      { name: "Next.js", icon: "next", x: 45.4, y: 12.7, size: 72, orbit: "orbit1" },
-      { name: "Tailwind CSS", icon: "tailwind", x: 53.7, y: 12.2, size: 72, orbit: "orbit1" },
-      { name: "React Native", icon: "react", x: 61.2, y: 13.3, size: 72, orbit: "orbit1" },
+      { name: "Next.js", icon: "next", x: 37.9, y: 13.4, size: 68, orbit: "orbit1" },
+      { name: "React", icon: "react", x: 43.6, y: 11.9, size: 68, orbit: "orbit1" },
+      { name: "TypeScript", icon: "typescript", x: 49.7, y: 10.8, size: 68, orbit: "orbit1" },
+      { name: "Tailwind CSS", icon: "tailwind", x: 56.2, y: 11.9, size: 68, orbit: "orbit1" },
+      { name: "React Native", icon: "react", x: 62.8, y: 13.0, size: 68, orbit: "orbit1" },
     ],
   },
   {
@@ -100,15 +106,16 @@ const GROUPS: GroupConfig[] = [
     label: "BACKEND",
     color: "#ff4ecd",
     color2: "#ff3d86",
-    labelPos: { x: 92.7, y: 23.1 },
+    labelPos: { x: 99.0, y: 32.3 },
     connectorEnd: { x: 82, y: 38 },
     nodes: [
-      { name: "Node.js", icon: "node", x: 74.4, y: 22.8, size: 72, orbit: "orbit2" },
-      { name: "Express.js", icon: "express", x: 81.5, y: 27.3, size: 72, orbit: "orbit2" },
-      { name: "NestJS", icon: "nestjs", x: 87.6, y: 33.1, size: 72, orbit: "orbit2" },
-      { name: "PHP", icon: "php", x: 91.8, y: 42.9, size: 72, orbit: "orbit2" },
-      { name: "Laravel", icon: "laravel", x: 92.2, y: 55.0, size: 72, orbit: "orbit2" },
-      { name: "ASP.NET MVC", icon: "dotnet", x: 88.7, y: 65.7, size: 72, orbit: "orbit2" },
+      { name: "Go", icon: "go", x: 75.4, y: 23.0, size: 68, orbit: "orbit2" },
+      { name: "Gin", icon: "gin", x: 80.5, y: 26.4, size: 68, orbit: "orbit2" },
+      { name: "Node.js", icon: "node", x: 85.6, y: 31.5, size: 68, orbit: "orbit2" },
+      { name: "Express.js", icon: "express", x: 89.9, y: 36.8, size: 68, orbit: "orbit2" },
+      { name: "NestJS", icon: "nestjs", x: 93.2, y: 44.4, size: 68, orbit: "orbit2" },
+      { name: "Laravel", icon: "laravel", x: 92.4, y: 55.8, size: 68, orbit: "orbit2" },
+      { name: "ASP.NET MVC", icon: "dotnet", x: 88.5, y: 63.8, size: 68, orbit: "orbit2" },
     ],
   },
   {
@@ -117,13 +124,14 @@ const GROUPS: GroupConfig[] = [
     label: "DATABASE",
     color: "#22ffd1",
     color2: "#65ff8f",
-    labelPos: { x: 78.2, y: 87.5 },
+    labelPos: { x: 75.0, y: 91.2 },
     connectorEnd: { x: 68.5, y: 75.5 },
     nodes: [
-      { name: "MySQL", icon: "mysql", x: 75.8, y: 71.7, size: 72, orbit: "orbit3" },
-      { name: "SQL Server", icon: "sqlserver", x: 68.2, y: 76.4, size: 72, orbit: "orbit3" },
-      { name: "MongoDB", icon: "mongodb", x: 60.3, y: 78.8, size: 72, orbit: "orbit3" },
-      { name: "Firebase", icon: "firebase", x: 52.6, y: 79.6, size: 72, orbit: "orbit3" },
+      { name: "PostgreSQL", icon: "postgresql", x: 78.8, y: 68.7, size: 68, orbit: "orbit3" },
+      { name: "MySQL", icon: "mysql", x: 73.9, y: 71.9, size: 68, orbit: "orbit3" },
+      { name: "SQL Server", icon: "sqlserver", x: 68.7, y: 75.5, size: 68, orbit: "orbit3" },
+      { name: "MongoDB", icon: "mongodb", x: 63.1, y: 76.9, size: 68, orbit: "orbit3" },
+      { name: "Redis", icon: "redis", x: 57.4, y: 78.0, size: 68, orbit: "orbit3" },
     ],
   },
   {
@@ -132,28 +140,30 @@ const GROUPS: GroupConfig[] = [
     label: "DEVOPS / CLOUD",
     color: "#3aa2ff",
     color2: "#35eaff",
-    labelPos: { x: 15.3, y: 85.7 },
+    labelPos: { x: 15.8, y: 85.9 },
     connectorEnd: { x: 29, y: 67 },
     nodes: [
-      { name: "Docker", icon: "docker", x: 41.6, y: 73.3, size: 72, orbit: "orbit4" },
-      { name: "GitHub Actions", icon: "actions", x: 34.2, y: 71.5, size: 72, orbit: "orbit4" },
-      { name: "CI/CD", icon: "cicd", x: 27.1, y: 68.8, size: 72, orbit: "orbit4" },
-      { name: "Cloud", icon: "cloud", x: 20.9, y: 63.8, size: 72, orbit: "orbit4" },
+      { name: "Docker", icon: "docker", x: 41.7, y: 73.3, size: 68, orbit: "orbit4" },
+      { name: "Docker Compose", icon: "dockercompose", x: 36.0, y: 72.3, size: 68, orbit: "orbit4" },
+      { name: "GitHub Actions", icon: "actions", x: 30.3, y: 70.4, size: 68, orbit: "orbit4" },
+      { name: "Cloudflare", icon: "cloudflare", x: 24.4, y: 66.5, size: 68, orbit: "orbit4" },
+      { name: "OCI", icon: "oci", x: 19.0, y: 61.6, size: 68, orbit: "orbit4" },
     ],
   },
   {
     id: "tools",
     number: "05",
-    label: "TOOLS / API",
+    label: "TOOLS / SYSTEMS",
     color: "#ffd35c",
     color2: "#ff9b33",
-    labelPos: { x: 8.2, y: 22.9 },
+    labelPos: { x: 10.5, y: 18.8 },
     connectorEnd: { x: 22.0, y: 52.0 },
     nodes: [
-      { name: "REST API", icon: "api", x: 21.8, y: 48.2, size: 72, orbit: "orbit5" },
-      { name: "Prisma", icon: "prisma", x: 26.4, y: 38.8, size: 72, orbit: "orbit5" },
-      { name: "Sequelize", icon: "sequelize", x: 33.1, y: 34.3, size: 72, orbit: "orbit5" },
-      { name: "Git", icon: "git", x: 39.5, y: 31.2, size: 72, orbit: "orbit5" },
+      { name: "Git", icon: "git", x: 38.6, y: 31.6, size: 68, orbit: "orbit5" },
+      { name: "REST API", icon: "api", x: 27.3, y: 38.4, size: 68, orbit: "orbit5" },
+      { name: "OpenAPI / Swagger", icon: "swagger", x: 33.0, y: 33.6, size: 68, orbit: "orbit5" },
+      { name: "Kafka", icon: "kafka", x: 46.6, y: 45.0, size: 68, orbit: "orbit5" },
+      { name: "GORM", icon: "gorm", x: 22.0, y: 46.3, size: 68, orbit: "orbit5" },
     ],
   },
 ];
@@ -200,26 +210,35 @@ function getConnectorPath(group: GroupConfig) {
 }
 
 const TECH_BRAND: Record<string, { path: string; color: string }> = {
-  react: { path: siReact.path, color: `#${siReact.hex}` },
   next: { path: siNextdotjs.path, color: "#FFFFFF" },
+  react: { path: siReact.path, color: `#${siReact.hex}` },
+  typescript: { path: siTypescript.path, color: `#${siTypescript.hex}` },
   tailwind: { path: siTailwindcss.path, color: `#${siTailwindcss.hex}` },
+  go: { path: siGo.path, color: `#${siGo.hex}` },
+  gin: { path: siGin.path, color: `#${siGin.hex}` },
   node: { path: siNodedotjs.path, color: `#${siNodedotjs.hex}` },
   express: { path: siExpress.path, color: "#FFFFFF" },
   nestjs: { path: siNestjs.path, color: `#${siNestjs.hex}` },
-  php: { path: siPhp.path, color: `#${siPhp.hex}` },
   laravel: { path: siLaravel.path, color: `#${siLaravel.hex}` },
   dotnet: { path: siDotnet.path, color: `#${siDotnet.hex}` },
+  postgresql: { path: siPostgresql.path, color: `#${siPostgresql.hex}` },
   mysql: { path: siMysql.path, color: `#${siMysql.hex}` },
   mongodb: { path: siMongodb.path, color: `#${siMongodb.hex}` },
-  firebase: { path: siFirebase.path, color: `#${siFirebase.hex}` },
+  redis: { path: siRedis.path, color: `#${siRedis.hex}` },
   docker: { path: siDocker.path, color: `#${siDocker.hex}` },
+  dockercompose: { path: siDocker.path, color: "#2496ED" },
   actions: { path: siGithubactions.path, color: `#${siGithubactions.hex}` },
   cicd: { path: siJenkins.path, color: `#${siJenkins.hex}` },
-  cloud: { path: siGooglecloud.path, color: `#${siGooglecloud.hex}` },
+  cloudflare: { path: siCloudflare.path, color: `#${siCloudflare.hex}` },
+  oci: { path: "", color: "#F80000" },
+  git: { path: siGit.path, color: `#${siGit.hex}` },
   api: { path: siOpenapiinitiative.path, color: `#${siOpenapiinitiative.hex}` },
+  swagger: { path: siSwagger.path, color: `#${siSwagger.hex}` },
+  kafka: { path: siApachekafka.path, color: "#FFFFFF" },
+  gorm: { path: "", color: "#00ADD8" },
+  pgx: { path: "", color: "#4169E1" },
   prisma: { path: siPrisma.path, color: "#FFFFFF" },
   sequelize: { path: siSequelize.path, color: `#${siSequelize.hex}` },
-  git: { path: siGit.path, color: `#${siGit.hex}` },
 };
 
 function Icon({ type }: { type: string }): ReactNode {
@@ -230,6 +249,40 @@ function Icon({ type }: { type: string }): ReactNode {
         alt="Microsoft SQL Server"
         draggable={false}
       />
+    );
+  }
+
+  if (type === "oci") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
+        <path d="M12 4.5C6.75 4.5 2.5 7.86 2.5 12s4.25 7.5 9.5 7.5 9.5-3.36 9.5-7.5-4.25-7.5-9.5-7.5zm0 11.5c-3.04 0-5.5-1.79-5.5-4s2.46-4 5.5-4 5.5 1.79 5.5 4-2.46 4-5.5 4z" />
+      </svg>
+    );
+  }
+
+  if (type === "dockercompose") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
+        <rect x="2.5" y="3.5" width="8.5" height="7.5" rx="1.5" />
+        <rect x="13" y="3.5" width="8.5" height="7.5" rx="1.5" />
+        <rect x="7.75" y="13" width="8.5" height="7.5" rx="1.5" />
+      </svg>
+    );
+  }
+
+  if (type === "gorm") {
+    return (
+      <span className="node-letter-small" style={{ fontWeight: 850, letterSpacing: "-0.04em", color: "#00ADD8" }}>
+        GORM
+      </span>
+    );
+  }
+
+  if (type === "pgx") {
+    return (
+      <span className="node-letter" style={{ fontWeight: 850, letterSpacing: "-0.03em", color: "#4169E1" }}>
+        pgx
+      </span>
     );
   }
 
@@ -256,7 +309,7 @@ const galaxyStyles = `
 @keyframes nebulaPulse { from { opacity: .55; transform: scale(1); } to { opacity: .95; transform: scale(1.03); } }
 .corner-scan { display: none; }
 @keyframes scan { 0% { transform: translateY(-140px); } 100% { transform: translateY(calc(100vh + 140px)); } }
-.galaxy-frame { position: relative; width: min(100vw, 1500px); aspect-ratio: 16 / 9; min-height: 590px; margin-top: 16px; transform-origin: center; user-select: none; contain: layout paint style; }
+.galaxy-frame { position: relative; width: min(100vw, 1500px); aspect-ratio: 16 / 9; min-height: 590px; margin-top: 16px; transform-origin: center; user-select: none; contain: layout style; overflow: visible; }
 .galaxy-frame::before, .galaxy-frame::after { content: none; }
 .hud-vignette { display: none; }
 .orbit-layer, .connect-layer, .node-layer, .label-layer, .core-layer, .star-layer { position: absolute; inset: 0; }
@@ -264,7 +317,7 @@ const galaxyStyles = `
 .connect-layer { z-index: 4; opacity: .9; }
 .star-layer { z-index: 5; pointer-events: none; }
 .node-layer { z-index: 10; }
-.label-layer { z-index: 14; pointer-events: none; }
+.label-layer { z-index: 14; pointer-events: none; overflow: visible; }
 .core-layer { z-index: 12; pointer-events: none; }
 .layer-svg { width: 100%; height: 100%; display: block; }
 .orbit-path { fill: none; stroke-width: 1.4; stroke-linecap: round; stroke-dasharray: 7 9; opacity: .75; animation: dashMove 24s linear infinite; }
@@ -314,12 +367,18 @@ const galaxyStyles = `
 .core h2 { margin: 16px 0 0; font-size: 19px; line-height: 1.1; font-weight: 850; letter-spacing: 0; color: #f5fbff; text-shadow: 0 0 10px rgba(255,255,255,.3), 0 0 20px rgba(65,230,255,.42); }
 .core p { margin: 5px 0 0; font-size: 11px; color: rgba(232,246,255,.72); font-weight: 600; }
 .core-badge { margin-top: 14px; padding: 6px 16px; border-radius: 999px; border: 1px solid rgba(83,162,255,.42); background: linear-gradient(90deg, rgba(26,89,255,.18), rgba(154,69,255,.16)); color: #86bfff; font-size: 10px; font-weight: 800; letter-spacing: .05em; box-shadow: 0 0 14px rgba(48,133,255,.3), inset 0 0 12px rgba(255,255,255,.04); }
-.position-recorder { width: min(920px, calc(100vw - 32px)); margin: -28px auto 56px; border: 1px solid rgba(255,255,255,.14); border-radius: 16px; background: rgba(2,6,15,.72); box-shadow: 0 18px 44px rgba(0,0,0,.28); backdrop-filter: blur(14px); padding: 14px; color: rgba(238,247,255,.9); }
-.position-recorder-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
-.position-recorder-title { font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: rgba(238,247,255,.82); }
-.position-reset { border: 1px solid rgba(255,255,255,.16); border-radius: 999px; padding: 5px 10px; font-size: 11px; font-weight: 700; color: rgba(238,247,255,.78); background: rgba(255,255,255,.04); }
-.position-output { width: 100%; height: 220px; resize: vertical; border: 1px solid rgba(255,255,255,.12); border-radius: 12px; background: rgba(0,0,0,.32); padding: 10px; font-family: var(--font-mono), ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 11px; line-height: 1.55; color: rgba(238,247,255,.82); outline: none; }
-.position-hint { margin-top: 8px; font-size: 11px; line-height: 1.5; color: rgba(238,247,255,.58); }
+.position-recorder { width: min(1000px, calc(100vw - 32px)); margin: 32px auto 64px; border: 1px solid rgba(53,234,255,.3); border-radius: 16px; background: rgba(5,10,24,.9); box-shadow: 0 18px 44px rgba(0,0,0,.55), 0 0 30px rgba(53,234,255,.12); backdrop-filter: blur(16px); padding: 20px; color: rgba(238,247,255,.92); position: relative; z-index: 50; }
+.position-recorder-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+.position-recorder-title { font-size: 13px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: #35eaff; display: flex; align-items: center; gap: 8px; text-shadow: 0 0 10px rgba(53,234,255,.4); }
+.position-actions { display: flex; align-items: center; gap: 10px; }
+.position-copy-btn { border: 1px solid rgba(53,234,255,.6); border-radius: 999px; padding: 7px 18px; font-size: 12px; font-weight: 800; color: #030712; background: #35eaff; cursor: pointer; transition: all .2s; box-shadow: 0 0 14px rgba(53,234,255,.35); }
+.position-copy-btn:hover { background: #6df2ff; box-shadow: 0 0 20px rgba(53,234,255,.6); transform: scale(1.02); }
+.position-copy-btn.copied { background: #22ffd1; color: #022c22; border-color: #22ffd1; box-shadow: 0 0 20px rgba(34,255,209,.6); }
+.position-reset { border: 1px solid rgba(255,255,255,.2); border-radius: 999px; padding: 7px 16px; font-size: 12px; font-weight: 700; color: rgba(238,247,255,.85); background: rgba(255,255,255,.06); cursor: pointer; transition: all .2s; }
+.position-reset:hover { background: rgba(255,255,255,.14); color: #fff; }
+.position-output { width: 100%; height: 280px; resize: vertical; border: 1px solid rgba(255,255,255,.14); border-radius: 12px; background: rgba(2,6,18,.8); padding: 12px 14px; font-family: var(--font-mono), ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 11.5px; line-height: 1.55; color: #38e8ff; outline: none; }
+.position-output:focus { border-color: #35eaff; box-shadow: 0 0 14px rgba(53,234,255,.25); }
+.position-hint { margin-top: 12px; font-size: 12px; line-height: 1.6; color: rgba(238,247,255,.7); }
 .mobile-hint { display: none; position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%); color: rgba(221,244,255,.68); font-size: 12px; z-index: 40; }
 .skills-heading { position: relative; z-index: 120; text-align: center; pointer-events: none; width: 100%; padding: 48px 16px 12px; }
 .skills-heading h2 { margin: 0; font-size: clamp(1.1rem, 2.2vw, 1.9rem); font-weight: 700; letter-spacing: 0; color: rgba(236, 247, 255, 0.96); text-shadow: 0 0 16px rgba(53, 234, 255, 0.28); }
@@ -328,7 +387,7 @@ const galaxyStyles = `
   .tech-galaxy { min-height: 640px; padding-top: 0; overflow-x: clip; overflow-y: visible; }
   .skills-heading { padding: 36px 16px 8px; }
   .galaxy-frame { width: 980px; min-height: 600px; margin-top: 4px; transform: scale(min(0.58, calc((100vw - 20px) / 980))); transform-origin: top center; }
-  .position-recorder { margin-top: -160px; }
+  .position-recorder { margin-top: 24px; }
   .mobile-hint { display: block; bottom: 8px; }
 }
 @media (max-width: 480px) {
@@ -357,6 +416,7 @@ export default function SkillsSection() {
   const [groupLabelPositions, setGroupLabelPositions] = useState<GroupLabelPositionMap>(
     () => getInitialGroupLabelPositions(),
   );
+
   const frameRef = useRef<HTMLDivElement | null>(null);
   const sectionRef = useRef<HTMLElement | null>(null);
   const draggingRef = useRef<DragState | null>(null);
@@ -423,6 +483,7 @@ export default function SkillsSection() {
       })),
     [nodePositions, groupLabelPositions],
   );
+
   const highlightedGroup = activeGroup ?? selectedGroup;
 
   const getPointerPercent = (clientX: number, clientY: number) => {
@@ -526,9 +587,14 @@ export default function SkillsSection() {
   const handleNodeTouchStart = (
     key: string,
     groupId: string,
+    event: ReactTouchEvent<HTMLButtonElement>,
   ) => {
     setActiveGroup(groupId);
     setSelectedGroup(groupId);
+    const touch = event.touches[0];
+    if (touch) {
+      startNodeDrag(key, groupId, touch.clientX, touch.clientY);
+    }
   };
 
   const handleGroupLabelMouseDown = (
@@ -541,9 +607,14 @@ export default function SkillsSection() {
 
   const handleGroupLabelTouchStart = (
     groupId: string,
+    event: ReactTouchEvent<HTMLButtonElement>,
   ) => {
     setActiveGroup(groupId);
     setSelectedGroup(groupId);
+    const touch = event.touches[0];
+    if (touch) {
+      startGroupLabelDrag(groupId, touch.clientX, touch.clientY);
+    }
   };
 
   useEffect(() => {
@@ -745,7 +816,7 @@ export default function SkillsSection() {
                       draggingNodeKey === key ? "is-dragging" : ""
                     }`}
                     onMouseDown={(event) => handleNodeMouseDown(key, group.id, event)}
-                    onTouchStart={() => handleNodeTouchStart(key, group.id)}
+                    onTouchStart={(event) => handleNodeTouchStart(key, group.id, event)}
                     style={
                       {
                         "--x": `${node.x}%`,
@@ -787,7 +858,7 @@ export default function SkillsSection() {
                   } as CSSProperties
                 }
                 onMouseDown={(event) => handleGroupLabelMouseDown(group.id, event)}
-                onTouchStart={() => handleGroupLabelTouchStart(group.id)}
+                onTouchStart={(event) => handleGroupLabelTouchStart(group.id, event)}
                 onClick={() => setSelectedGroup((current) => (current === group.id ? null : group.id))}
                 onMouseEnter={() => setActiveGroup(group.id)}
                 onMouseLeave={() => setActiveGroup(null)}
@@ -821,7 +892,6 @@ export default function SkillsSection() {
         </div>
         <div className="mobile-hint">Tech Galaxy - drag horizontally on small screens</div>
       </section>
-      {/* Coordinate panel hidden after position lock-in */}
     </>
   );
 }

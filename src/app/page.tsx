@@ -3,6 +3,7 @@ import SiteHeader from "@/components/SiteHeader";
 import dynamic from "next/dynamic";
 import HeroSection from "@/components/sections/HeroSection";
 import IntroModelSection from "@/components/sections/IntroModelSection";
+import IntroPreloader from "@/components/IntroPreloader";
 
 const SkillsSection = dynamic(() => import("@/components/sections/SkillsSection"));
 const ExperienceSection = dynamic(() => import("@/components/sections/ExperienceSection"));
@@ -12,7 +13,7 @@ const ContactSection = dynamic(() => import("@/components/sections/ContactSectio
 export default function Home() {
   return (
     <div className="page-shell flex min-h-screen flex-col">
-      {/* Loading disabled temporarily */}
+      <IntroPreloader />
       <SiteHeader />
 
       <main className="relative flex-1 overflow-visible">

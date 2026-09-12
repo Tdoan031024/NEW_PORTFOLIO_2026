@@ -239,7 +239,7 @@ function TimelineItem() {
               className="relative grid grid-cols-[40px_minmax(0,1fr)] gap-2.5 sm:grid-cols-[62px_minmax(0,1fr)] sm:gap-5"
             >
               {!isItemLast ? (
-                <span className="absolute left-[19px] top-11 h-[calc(100%+30px)] w-px bg-[linear-gradient(to_bottom,rgba(255,255,255,0.04),rgba(103,232,249,0.35),rgba(255,255,255,0.04))] sm:left-[30px]">
+                <span className="absolute left-[19px] top-11 h-[calc(100%-24px)] w-px bg-[linear-gradient(to_bottom,rgba(255,255,255,0.04),rgba(103,232,249,0.35),rgba(255,255,255,0.04))] sm:left-[30px] sm:top-[52px] sm:h-[calc(100%-28px)]">
                   <motion.span
                     initial={false}
                     className="absolute left-0 top-0 block w-[2px] bg-cyan-200 shadow-[0_0_20px_rgba(103,232,249,1),0_0_36px_rgba(34,211,238,0.95),0_0_54px_rgba(34,211,238,0.8)]"

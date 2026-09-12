@@ -199,6 +199,7 @@ export default function HeroThree({
     target: defaultTarget,
   });
   const [copied, setCopied] = useState(false);
+  const [isModelLoading, setIsModelLoading] = useState(true);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -215,6 +216,16 @@ export default function HeroThree({
       alpha: true,
       powerPreference: "high-performance",
     });
+
+    const handleContextLost = (event: Event) => {
+      event.preventDefault();
+      console.warn("WebGL context lost. Awaiting restoration...");
+    };
+    const handleContextRestored = () => {
+      console.info("WebGL context restored.");
+    };
+    renderer.domElement.addEventListener("webglcontextlost", handleContextLost, false);
+    renderer.domElement.addEventListener("webglcontextrestored", handleContextRestored, false);
 
     renderer.setPixelRatio(
       Math.min(window.devicePixelRatio, isCoarsePointer ? 0.9 : lowPowerDevice ? 0.95 : 1),
@@ -420,13 +431,34 @@ export default function HeroThree({
     loader.setKTX2Loader(ktx2Loader);
 
     const markReady = () => {
+      if (modelReady) return;
       modelReady = true;
       introStartAt = performance.now();
       group.visible = true;
+      setIsModelLoading(false);
+      window.dispatchEvent(new CustomEvent("model-3d-ready"));
       requestAnimationFrame(() => {
-        renderer.domElement.style.opacity = "1";
+        if (renderer.domElement) {
+          renderer.domElement.style.opacity = "1";
+        }
       });
     };
+
+    const handlePreloaderComplete = () => {
+      introStartAt = performance.now();
+      group.visible = true;
+      if (renderer.domElement) {
+        renderer.domElement.style.opacity = "1";
+      }
+    };
+    window.addEventListener("intro-preloader-complete", handlePreloaderComplete);
+
+    const safetyTimer = window.setTimeout(() => {
+      if (!modelReady && !isDisposed) {
+        console.warn("3D room model load timeout - forcing visibility");
+        markReady();
+      }
+    }, 4500);
 
     const resolveTargetByName = (
       object: THREE.Object3D | null | undefined,
@@ -715,7 +747,7 @@ export default function HeroThree({
           rafId = window.requestAnimationFrame(animate);
         }
       },
-      { threshold: 0.05 },
+      { threshold: 0.01, rootMargin: "300px" },
     );
     observer.observe(container);
 
@@ -907,6 +939,8 @@ export default function HeroThree({
     resizeObserver.observe(container);
 
     return () => {
+      window.removeEventListener("intro-preloader-complete", handlePreloaderComplete);
+      window.clearTimeout(safetyTimer);
       resizeObserver.disconnect();
       observer.disconnect();
       if (enableInteraction) {
@@ -956,6 +990,17 @@ export default function HeroThree({
 
   return (
     <div className="relative h-full w-full">
+      {isModelLoading && (
+        <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-3 z-20">
+          <div className="relative flex h-12 w-12 items-center justify-center">
+            <div className="absolute inset-0 rounded-full border-2 border-cyan-400/25 border-t-cyan-400 animate-spin" />
+            <div className="h-4 w-4 rounded-full bg-cyan-400/40 shadow-[0_0_16px_rgba(34,211,238,0.85)] animate-pulse" />
+          </div>
+          <span className="text-[11px] font-mono tracking-widest text-cyan-300/80 uppercase animate-pulse">
+            Đang tải không gian 3D...
+          </span>
+        </div>
+      )}
       <div ref={containerRef} className={className ?? "h-full w-full"} />
       {showCoordinateHelper && (
         <div className="pointer-events-auto fixed bottom-6 left-6 z-[999] flex flex-col gap-2.5 rounded-2xl border border-cyan-400/30 bg-slate-950/90 p-4 text-xs text-white shadow-2xl backdrop-blur-xl max-w-sm sm:max-w-md">

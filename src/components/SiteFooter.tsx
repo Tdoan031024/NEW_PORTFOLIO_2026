@@ -8,6 +8,7 @@ const navLinks = [
   { label: "Featured Projects", href: "#projects" },
   { label: "Experience", href: "#experience" },
   { label: "Get in Touch", href: "#contact" },
+  { label: "Download CV (PDF)", href: "/assets/file/Fullstack_Developer-Do_Van_Tuyen_Doan.pdf", isDownload: true },
 ];
 
 const featuredProjects = [
@@ -111,6 +112,9 @@ export default function SiteFooter() {
                 <li key={item.label}>
                   <a
                     href={item.href}
+                    target={item.isDownload ? "_blank" : undefined}
+                    rel={item.isDownload ? "noopener noreferrer" : undefined}
+                    download={item.isDownload ? "Fullstack_Developer-Do_Van_Tuyen_Doan.pdf" : undefined}
                     className="group inline-flex items-center gap-1.5 text-white/60 transition-colors duration-200 hover:text-cyan-200"
                   >
                     <span className="h-1 w-1 rounded-full bg-transparent transition-all group-hover:w-2 group-hover:bg-cyan-400" />
