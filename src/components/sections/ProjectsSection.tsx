@@ -1,6 +1,7 @@
 "use client";
 import { motion } from "framer-motion";
 import { projects, type ProjectItem } from "@/data/projects";
+import { useLanguage } from "@/components/LanguageProvider";
 
 function TechBadge({ children }: { children: string }) {
   return (
@@ -467,6 +468,7 @@ function TimelineInfo({ project }: { project: ProjectItem }) {
 }
 
 function ProjectCard({ project, index }: { project: ProjectItem; index: number }) {
+  const { language } = useLanguage();
   return (
     <article
       className="project-entry group relative flex flex-col justify-between rounded-2xl border border-white/10 bg-[linear-gradient(180deg,rgba(10,18,36,0.92),rgba(6,12,28,0.92))] p-4 sm:p-5 shadow-[0_14px_34px_rgba(0,0,0,0.35)] transition-all duration-300 hover:-translate-y-1 hover:border-cyan-300/40 hover:shadow-[0_20px_44px_rgba(34,211,238,0.16)] md:min-h-[285px]"
@@ -509,7 +511,7 @@ function ProjectCard({ project, index }: { project: ProjectItem; index: number }
                 href={`/projects/${project.slug}`}
                 className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[11px] font-medium text-white/70 transition hover:bg-white/[0.09] hover:text-white"
               >
-                Chi tiết dự án <span aria-hidden="true">→</span>
+                {language === "vi" ? "Chi tiết dự án" : "View Case Study"} <span aria-hidden="true">→</span>
               </a>
             </div>
           </div>
@@ -532,15 +534,19 @@ function ProjectCard({ project, index }: { project: ProjectItem; index: number }
 }
 
 export default function ProjectsSection() {
+  const { language } = useLanguage();
+
   return (
     <section id="projects" className="relative overflow-hidden bg-transparent pb-16 pt-0 font-sans text-white sm:pt-0">
       <div className="pointer-events-none absolute bottom-8 right-10 hidden h-32 w-24 opacity-25 [background-image:radial-gradient(rgba(148,163,184,0.55)_1.2px,transparent_1.2px)] [background-size:15px_15px] md:block" />
 
       <section className="relative z-10 mx-auto max-w-[1160px] px-5 sm:px-8 lg:px-0">
         <div className="text-center">
-          <p className="text-[11px] font-extrabold uppercase tracking-[0.42em] text-white/40">WHAT I&apos;VE BUILT</p>
+          <p className="text-[11px] font-extrabold uppercase tracking-[0.42em] text-white/40">
+            {language === "vi" ? "SẢN PHẨM TIÊU BIỂU" : "WHAT I'VE BUILT"}
+          </p>
           <h2 className="mt-5 text-[44px] font-black leading-[0.95] tracking-[-0.055em] text-white sm:text-[56px] md:text-[64px]">
-            Feature Project
+            {language === "vi" ? "Dự án Nổi bật" : "Featured Projects"}
           </h2>
         </div>
 

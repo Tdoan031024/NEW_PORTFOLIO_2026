@@ -54,7 +54,7 @@ function SidebarIcon({ type }: { type: (typeof quickLinks)[number]["icon"] }) {
 }
 
 export default function SiteHeader() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [mounted, setMounted] = useState(false);
   const [visible, setVisible] = useState(false);
   const [entered, setEntered] = useState(false);
@@ -209,20 +209,31 @@ export default function SiteHeader() {
             : "pointer-events-none translate-x-4 opacity-0"
         }`}
       >
-        {quickLinks.map((item) => (
-          <a
-            key={item.label}
-            href={item.href}
-            title={item.label}
-            aria-label={item.label}
-            className="group relative grid h-11 w-11 place-items-center rounded-xl border border-white/15 bg-[#050b18]/65 text-white/80 backdrop-blur-md transition hover:border-cyan-300/45 hover:text-cyan-200"
-          >
-            <SidebarIcon type={item.icon} />
-            <span className="pointer-events-none absolute right-[calc(100%+10px)] rounded-md border border-white/10 bg-[#050b18]/95 px-2 py-1 text-[11px] text-white/85 opacity-0 transition group-hover:opacity-100">
-              {item.label}
-            </span>
-          </a>
-        ))}
+        {quickLinks.map((item) => {
+          const label =
+            item.label === "About"
+              ? language === "vi" ? "Giới thiệu" : "About"
+              : item.label === "Skills"
+              ? language === "vi" ? "Kỹ năng" : "Skills"
+              : item.label === "Works"
+              ? language === "vi" ? "Kinh nghiệm" : "Works"
+              : language === "vi" ? "Liên hệ" : "Contact";
+
+          return (
+            <a
+              key={item.label}
+              href={item.href}
+              title={label}
+              aria-label={label}
+              className="group relative grid h-11 w-11 place-items-center rounded-xl border border-white/15 bg-[#050b18]/65 text-white/80 backdrop-blur-md transition hover:border-cyan-300/45 hover:text-cyan-200"
+            >
+              <SidebarIcon type={item.icon} />
+              <span className="pointer-events-none absolute right-[calc(100%+10px)] rounded-md border border-white/10 bg-[#050b18]/95 px-2 py-1 text-[11px] text-white/85 opacity-0 transition group-hover:opacity-100">
+                {label}
+              </span>
+            </a>
+          );
+        })}
       </nav>
 
       {/* Mobile Floating Bottom Dock */}
@@ -234,17 +245,28 @@ export default function SiteHeader() {
             : "pointer-events-none translate-y-8 opacity-0"
         }`}
       >
-        {quickLinks.map((item) => (
-          <a
-            key={item.label}
-            href={item.href}
-            title={item.label}
-            aria-label={item.label}
-            className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.06] text-white/85 transition active:scale-90 active:border-cyan-300/50 active:text-cyan-200"
-          >
-            <SidebarIcon type={item.icon} />
-          </a>
-        ))}
+        {quickLinks.map((item) => {
+          const label =
+            item.label === "About"
+              ? language === "vi" ? "Giới thiệu" : "About"
+              : item.label === "Skills"
+              ? language === "vi" ? "Kỹ năng" : "Skills"
+              : item.label === "Works"
+              ? language === "vi" ? "Kinh nghiệm" : "Works"
+              : language === "vi" ? "Liên hệ" : "Contact";
+
+          return (
+            <a
+              key={item.label}
+              href={item.href}
+              title={label}
+              aria-label={label}
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.06] text-white/85 transition active:scale-90 active:border-cyan-300/50 active:text-cyan-200"
+            >
+              <SidebarIcon type={item.icon} />
+            </a>
+          );
+        })}
       </nav>
 
       {(sidebarGuideMounted || isEditingGuides) && (

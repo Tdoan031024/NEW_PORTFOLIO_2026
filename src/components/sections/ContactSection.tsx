@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
+import { useLanguage } from "@/components/LanguageProvider";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
 
@@ -13,6 +14,7 @@ type FormState = {
 };
 
 export default function ContactSection() {
+  const { t, language } = useLanguage();
   const [isMobile, setIsMobile] = useState(false);
   const [form, setForm] = useState<FormState>({
     name: "",
@@ -67,10 +69,10 @@ export default function ContactSection() {
               className={isMobile ? "" : "lg:pr-6"}
             >
               <h2 className="text-3xl sm:text-4xl font-black tracking-[-0.03em] text-white md:text-5xl">
-                Let&apos;s build what&apos;s next.
+                {t("contactTitle")}
               </h2>
               <p className="mt-5 max-w-xl text-[15px] sm:text-[16px] leading-7 sm:leading-8 text-white/70">
-                Have a role, project, or idea in mind? Let&apos;s turn it into a modern, scalable, and meaningful digital product.
+                {t("contactDesc")}
               </p>
               <div className="mt-7 space-y-2 text-sm text-white/60">
                 <p>
@@ -80,12 +82,15 @@ export default function ContactSection() {
                   </a>
                 </p>
                 <p>
-                  Điện thoại:{" "}
+                  {language === "vi" ? "Điện thoại:" : "Phone:"}{" "}
                   <a href="tel:0888854212" className="text-cyan-300 hover:underline">
                     0888854212
                   </a>
                 </p>
-                <p>Ho Chi Minh City, Vietnam</p>
+                <p>{t("contactLocation")}</p>
+                <p className="text-xs text-cyan-300/80 font-medium pt-1">
+                  ✓ {t("contactOpen")}
+                </p>
               </div>
             </motion.div>
 
@@ -102,7 +107,7 @@ export default function ContactSection() {
                   name="name"
                   value={form.name}
                   onChange={handleChange}
-                  placeholder="Name"
+                  placeholder={t("formName")}
                   className="rounded-2xl border border-white/12 bg-black/35 px-4 py-3 text-sm text-white/85 placeholder:text-white/40 focus:border-cyan-300/65 focus:outline-none"
                   required
                 />
@@ -111,7 +116,7 @@ export default function ContactSection() {
                   type="email"
                   value={form.email}
                   onChange={handleChange}
-                  placeholder="Email"
+                  placeholder={t("formEmail")}
                   className="rounded-2xl border border-white/12 bg-black/35 px-4 py-3 text-sm text-white/85 placeholder:text-white/40 focus:border-cyan-300/65 focus:outline-none"
                   required
                 />
@@ -121,7 +126,7 @@ export default function ContactSection() {
                 name="subject"
                 value={form.subject}
                 onChange={handleChange}
-                placeholder="Subject"
+                placeholder={t("formSubject")}
                 className="mt-4 w-full rounded-2xl border border-white/12 bg-black/35 px-4 py-3 text-sm text-white/85 placeholder:text-white/40 focus:border-cyan-300/65 focus:outline-none"
               />
 
@@ -129,7 +134,7 @@ export default function ContactSection() {
                 name="message"
                 value={form.message}
                 onChange={handleChange}
-                placeholder="Message"
+                placeholder={t("formMessage")}
                 rows={5}
                 className="mt-4 w-full rounded-2xl border border-white/12 bg-black/35 px-4 py-3 text-sm text-white/85 placeholder:text-white/40 focus:border-cyan-300/65 focus:outline-none"
                 required
@@ -141,11 +146,11 @@ export default function ContactSection() {
                   disabled={status === "loading"}
                   className="rounded-full border border-cyan-300/45 bg-cyan-300/18 px-6 py-3 text-sm font-semibold text-cyan-100 transition hover:bg-cyan-300/25 disabled:opacity-50"
                 >
-                  {status === "loading" ? "Sending..." : "Send Message"}
+                  {status === "loading" ? t("formSending") : t("formSend")}
                 </button>
                 <span className="text-xs text-white/62">
-                  {status === "success" && "Sent successfully."}
-                  {status === "error" && "Send failed. Try again."}
+                  {status === "success" && t("formSuccess")}
+                  {status === "error" && t("formError")}
                 </span>
               </div>
             </motion.form>

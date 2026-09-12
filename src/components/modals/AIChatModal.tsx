@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { playAiChimeSound } from "@/utils/audioEffects";
+import { useLanguage } from "@/components/LanguageProvider";
 
 type Message = {
   id: string;
@@ -10,46 +11,102 @@ type Message = {
   time: string;
 };
 
-const INITIAL_MESSAGES: Message[] = [
-  {
-    id: "welcome-1",
-    sender: "ai",
-    text: "Xin chào! 👋 Tôi là **Doan AI Assistant** - Trợ lý thông minh được kết nối trực tiếp từ Robot trong không gian 3D của **Đỗ Văn Tuyến Đoàn**.\n\nTôi có thể cung cấp chi tiết về **kinh nghiệm làm việc**, **các dự án tiêu biểu** (HUIT Fest, HUIT Startup, SOF SaaS, ELH E-Commerce...), **kỹ năng công nghệ** hoặc **kết nối phỏng vấn**. Bạn muốn tìm hiểu điều gì?",
-    time: "Vừa xong",
-  },
-];
-
-const SUGGESTED_PROMPTS = [
+const SUGGESTED_PROMPTS_VI = [
   "💼 Kinh nghiệm làm việc của Tuyến Đoàn?",
   "🚀 Các dự án nổi bật nhất gần đây?",
   "🛠️ Kỹ năng công nghệ & Tech Stack?",
   "📬 Cách thức liên hệ phỏng vấn hoặc hợp tác?",
 ];
 
-function generateAiResponse(query: string): string {
+const SUGGESTED_PROMPTS_EN = [
+  "💼 What is Tuyen Doan's work experience?",
+  "🚀 What are the featured projects?",
+  "🛠️ Core tech stack and technical skills?",
+  "📬 How to get in touch for interviews or collaboration?",
+];
+
+function generateAiResponse(query: string, lang: "vi" | "en" = "en"): string {
   const lower = query.toLowerCase();
 
-  if (lower.includes("kinh nghiệm") || lower.includes("kinh nghiem") || lower.includes("experience") || lower.includes("làm việc")) {
-    return `**Kinh nghiệm làm việc của Đỗ Văn Tuyến Đoàn:**\n\n1. **Full-stack Engineer tại CLuega (09/2026 - Hiện tại):**\n   - Phát triển hệ thống web quy mô lớn, tối ưu hóa kiến trúc microservices và trải nghiệm người dùng.\n\n2. **Full-stack Developer tại SOF Company Limited (01/2026 - 08/2026):**\n   - Phát triển hệ sinh thái ứng dụng Android trên Google Play: SOF F&B, Face AI chấm công, SOF WMS quản lý kho, SOF Parking.\n   - Xây dựng nền tảng Web SaaS ERP quản trị doanh nghiệp đa chi nhánh, tích hợp VNPay, Momo, VietQR.\n\n3. **Full-stack Developer Intern tại Trung tâm IEC - HUIT (06/2025 - 09/2025):**\n   - Phát triển Cổng thông tin Ngày hội việc làm (Job Fair Portal) với ASP.NET 8.0 MVC và SQL Server.`;
+  if (
+    lower.includes("kinh nghiệm") ||
+    lower.includes("kinh nghiem") ||
+    lower.includes("experience") ||
+    lower.includes("work") ||
+    lower.includes("làm việc")
+  ) {
+    if (lang === "en") {
+      return `**Tuyen Doan's Professional Experience:**\n\n1. **Full-Stack Engineer at Cluega (09/2026 - Present):**\n   - Contributing to Cluega's Full-Lifecycle AI Work Assistant and marketing automation ecosystem.\n   - Building scalable web interfaces, autonomous workflow pipelines, LLM tool integrations, and real-time CDP synchronizations.\n\n2. **Full-Stack Developer at SOF Company Limited (01/2026 - 08/2026):**\n   - Developed Android apps published on Google Play: SOF F&B, SOF FACE AI (facial recognition attendance), SOF WMS (barcode warehouse), and SOF POS.\n   - Built multi-branch Web SaaS ERP platforms with automated electronic invoice tax integrations and VNPay, MoMo, VietQR payment gateways.\n\n3. **Full-Stack Developer Intern at IEC Center - HUIT (06/2025 - 09/2025):**\n   - Developed the Job Fair Portal with ASP.NET 8.0 MVC and SQL Server.`;
+    }
+    return `**Kinh nghiệm làm việc của Đỗ Văn Tuyến Đoàn:**\n\n1. **Full-Stack Engineer tại Cluega (09/2026 - Hiện tại):**\n   - Phát triển hệ thống trợ lý công việc AI (Full-Lifecycle AI Work Assistant) và pipeline tự động hóa quy trình làm việc.\n   - Tích hợp công cụ LLM, đồng bộ chiến dịch marketing đa kênh và nền tảng dữ liệu khách hàng (CDP).\n\n2. **Full-Stack Developer tại Công ty TNHH SOF (01/2026 - 08/2026):**\n   - Phát triển hệ sinh thái 6+ ứng dụng Android trên Google Play: SOF F&B, SOF FACE AI chấm công, SOF WMS quản lý kho, SOF Parking.\n   - Xây dựng nền tảng Web SaaS ERP quản trị doanh nghiệp đa chi nhánh, tích hợp VNPay, Momo, VietQR.\n\n3. **Full-Stack Developer Intern tại Trung tâm IEC - HUIT (06/2025 - 09/2025):**\n   - Phát triển Cổng thông tin Ngày hội việc làm với ASP.NET 8.0 MVC và SQL Server.`;
   }
 
-  if (lower.includes("dự án") || lower.includes("du an") || lower.includes("project") || lower.includes("huit fest") || lower.includes("startup") || lower.includes("sof")) {
-    return `**Các dự án nổi bật nhất:**\n\n- 🎵 **HUIT FEST 2026:** Nền tảng đại nhạc hội sinh viên Trường ĐH Công Thương TP.HCM, kết nối 10+ nghệ sĩ khách mời và phục vụ đăng ký hơn 5.000 vé online.\n- 🏆 **HUIT STARTUP 2026:** Cổng cuộc thi khởi nghiệp cấp Thành phố với 240+ đề tài, bình chọn realtime chống gian lận vote.\n- 🤖 **SOF Mobile Ecosystem:** Hệ sinh thái 6+ ứng dụng Android doanh nghiệp trên Google Play (Face AI, Barcode WMS, POS, Parking).\n- ☁️ **SOF SaaS Platform:** Nền tảng ERP & chuyển đổi số quản trị dòng tiền, hóa đơn điện tử kết nối thuế.\n- ⚡ **ELH E-Commerce:** Website thương mại điện tử thiết bị điện công nghiệp và giải pháp tự động hóa chính hãng (Siemens, ABB, MPE).\n\n👉 Bạn có thể xem chi tiết từng dự án tại mục **Feature Project** trên website!`;
+  if (
+    lower.includes("dự án") ||
+    lower.includes("du an") ||
+    lower.includes("project") ||
+    lower.includes("huit fest") ||
+    lower.includes("startup") ||
+    lower.includes("sof") ||
+    lower.includes("iconic") ||
+    lower.includes("elh")
+  ) {
+    if (lang === "en") {
+      return `**Featured Projects:**\n\n- 🎵 **HUIT FEST 2026:** Concert platform for Ho Chi Minh City University of Industry and Trade, hosting 10+ celebrity artists and 5,000+ online ticket registrations.\n- 🏆 **HUIT STARTUP 2026:** City-wide startup contest portal with 240+ submissions, realtime fraud-proof voting and leaderboard.\n- 🤖 **SOF Mobile Ecosystem:** 6+ published Android enterprise apps on Google Play (Face AI, Barcode WMS, POS, Parking).\n- ☁️ **SOF SaaS Platform:** Cloud ERP & digital transformation platform with cash-flow management and electronic invoices.\n- ⚡ **ELH E-Commerce:** Industrial electrical equipment and automation platform (Siemens, ABB, MPE).\n- 👑 **HUIT's ICONIC 2026:** Student Ambassador contest with bilingual voting (VI/EN).\n\n👉 You can check out interactive case studies under the **Featured Projects** section!`;
+    }
+    return `**Các dự án nổi bật nhất:**\n\n- 🎵 **HUIT FEST 2026:** Nền tảng đại nhạc hội sinh viên Trường ĐH Công Thương TP.HCM, kết nối 10+ nghệ sĩ khách mời và phục vụ đăng ký hơn 5.000 vé online.\n- 🏆 **HUIT STARTUP 2026:** Cổng cuộc thi khởi nghiệp cấp Thành phố với 240+ đề tài, bình chọn realtime chống gian lận vote.\n- 🤖 **SOF Mobile Ecosystem:** Hệ sinh thái 6+ ứng dụng Android doanh nghiệp trên Google Play (Face AI, Barcode WMS, POS, Parking).\n- ☁️ **SOF SaaS Platform:** Nền tảng ERP & chuyển đổi số quản trị dòng tiền, hóa đơn điện tử kết nối thuế.\n- ⚡ **ELH E-Commerce:** Website thương mại điện tử thiết bị điện công nghiệp và giải pháp tự động hóa chính hãng (Siemens, ABB, MPE).\n- 👑 **HUIT's ICONIC 2026:** Hệ thống bình chọn Đại sứ Truyền thông sinh viên HUIT hỗ trợ đa ngôn ngữ.\n\n👉 Bạn có thể xem chi tiết từng dự án tại mục **Dự án Nổi bật** trên website!`;
   }
 
-  if (lower.includes("kỹ năng") || lower.includes("ky nang") || lower.includes("skill") || lower.includes("tech stack") || lower.includes("công nghệ")) {
-    return `**Kỹ năng công nghệ chính của Tuyến Đoàn:**\n\n- **Frontend:** React, Next.js (App Router, Server Components), TypeScript, Tailwind CSS, Three.js / WebGL, Framer Motion, GSAP.\n- **Mobile:** React Native, Expo, Android Native, Face AI, Scanner Barcode/QR, Bluetooth Thermal Printing.\n- **Backend:** Node.js, Express, NestJS, ASP.NET Core, RESTful API, WebSockets / Socket.IO, WebRTC.\n- **Database:** MySQL, PostgreSQL, SQL Server, MongoDB, SQLite.\n- **Cloud & DevOps:** Cloudflare, Docker, Git, CI/CD, Vercel, Firebase Cloud Messaging.`;
+  if (
+    lower.includes("kỹ năng") ||
+    lower.includes("ky nang") ||
+    lower.includes("skill") ||
+    lower.includes("tech stack") ||
+    lower.includes("công nghệ") ||
+    lower.includes("technology")
+  ) {
+    if (lang === "en") {
+      return `**Core Technical Skills:**\n\n- **Frontend:** Next.js (App Router, Server Components), React, TypeScript, Tailwind CSS, Three.js / WebGL, Framer Motion, GSAP.\n- **Mobile:** React Native, Expo, Android Native, Face AI, Barcode/QR Scanning, Bluetooth Thermal Printing.\n- **Backend:** Node.js, Express, NestJS, Go (Gin), ASP.NET Core, RESTful APIs, WebSockets / Socket.IO, WebRTC.\n- **Databases:** PostgreSQL, MySQL, SQL Server, MongoDB, Redis.\n- **Cloud & DevOps:** Docker, Docker Compose, GitHub Actions CI/CD, Cloudflare, OCI, Vercel.`;
+    }
+    return `**Kỹ năng công nghệ chính của Tuyến Đoàn:**\n\n- **Frontend:** React, Next.js (App Router, Server Components), TypeScript, Tailwind CSS, Three.js / WebGL, Framer Motion, GSAP.\n- **Mobile:** React Native, Expo, Android Native, Face AI, Scanner Barcode/QR, Bluetooth Thermal Printing.\n- **Backend:** Node.js, Express, NestJS, ASP.NET Core, Go, RESTful API, WebSockets / Socket.IO, WebRTC.\n- **Database:** MySQL, PostgreSQL, SQL Server, MongoDB, Redis.\n- **Cloud & DevOps:** Docker, GitHub Actions, Cloudflare, Git, CI/CD, Vercel.`;
   }
 
-  if (lower.includes("liên hệ") || lower.includes("lien he") || lower.includes("contact") || lower.includes("email") || lower.includes("sđt") || lower.includes("phỏng vấn")) {
-    return `**Thông tin kết nối trực tiếp với Đỗ Văn Tuyến Đoàn:**\n\n- 📧 **Email:** [dovantuyendoan14@gmail.com](mailto:dovantuyendoan14@gmail.com)\n- 📱 **Hotline/Zalo:** 0907 433 149\n- 💻 **GitHub:** [github.com/Tdoan031024](https://github.com/Tdoan031024)\n- 💼 **LinkedIn:** [linkedin.com/in/dvtd](https://www.linkedin.com/in/dvtd/)\n- 📍 **Địa chỉ:** TP. Hồ Chí Minh, Việt Nam\n\nBạn cũng có thể cuộn xuống cuối trang để gửi tin nhắn trực tiếp qua form liên hệ!`;
+  if (
+    lower.includes("liên hệ") ||
+    lower.includes("lien he") ||
+    lower.includes("contact") ||
+    lower.includes("email") ||
+    lower.includes("sđt") ||
+    lower.includes("phone") ||
+    lower.includes("phỏng vấn") ||
+    lower.includes("interview") ||
+    lower.includes("hire")
+  ) {
+    if (lang === "en") {
+      return `**Contact & Collaboration Info:**\n\n- 📧 **Email:** [dovantuyendoan14@gmail.com](mailto:dovantuyendoan14@gmail.com)\n- 📱 **Phone/Zalo:** 0888854212\n- 💻 **GitHub:** [github.com/Tdoan031024](https://github.com/Tdoan031024)\n- 💼 **LinkedIn:** [linkedin.com/in/dvtd](https://www.linkedin.com/in/dvtd/)\n- 📍 **Location:** Ho Chi Minh City, Vietnam\n\nFeel free to scroll down to the Contact section to send a direct message!`;
+    }
+    return `**Thông tin kết nối trực tiếp với Đỗ Văn Tuyến Đoàn:**\n\n- 📧 **Email:** [dovantuyendoan14@gmail.com](mailto:dovantuyendoan14@gmail.com)\n- 📱 **Điện thoại:** 0888854212\n- 💻 **GitHub:** [github.com/Tdoan031024](https://github.com/Tdoan031024)\n- 💼 **LinkedIn:** [linkedin.com/in/dvtd](https://www.linkedin.com/in/dvtd/)\n- 📍 **Địa chỉ:** TP. Hồ Chí Minh, Việt Nam\n\nBạn cũng có thể cuộn xuống cuối trang để gửi tin nhắn trực tiếp qua form liên hệ!`;
   }
 
-  if (lower.includes("mèo") || lower.includes("meo") || lower.includes("cat") || lower.includes("phòng") || lower.includes("3d") || lower.includes("robot")) {
-    return `**Bật mí về Căn phòng IT 3D này!** 🎮\n\nCăn phòng được xây dựng bằng **Three.js & WebGL**, mô phỏng không gian làm việc của một Full-stack Developer:\n- 🐱 **Bấm vào chú mèo:** Chú mèo sẽ nảy tưng tưng và kêu 'Meowww~'\n- 💀 **Bấm vào bộ xương:** Lắc lư hài hước biểu tượng dev cày cuốc đêm!\n- 🤖 **Bấm vào Robot / Trụ:** Robot nhảy và xoay 360 độ phát sáng!\n- 💺 **Bấm vào ghế:** Ghế công thái học xoay tròn 360 độ!\n- 🕹️ **Bấm vào máy tính / máy game:** Mở ngay tựa game **Cyber Bug Hunter** để bắn bọ giải trí!\n- 🤖 **Và bấm vào tôi (Robot AI màu trắng):** Mở hộp thoại trò chuyện thông minh này!`;
+  if (
+    lower.includes("mèo") ||
+    lower.includes("meo") ||
+    lower.includes("cat") ||
+    lower.includes("phòng") ||
+    lower.includes("3d") ||
+    lower.includes("robot") ||
+    lower.includes("room")
+  ) {
+    if (lang === "en") {
+      return `**Easter Eggs in this 3D Room!** 🎮\n\nBuilt with **Three.js & WebGL**, simulating a modern developer's setup:\n- 🐱 **Click the Cat:** Bounces happily and meows!\n- 💀 **Click the Skeleton:** Wiggles humorously symbolizing late-night dev sessions!\n- 🤖 **Click the Robot/Pedestal:** Spins 360° and glows neon!\n- 💺 **Click the Chair:** Ergonomic chair completes a full 360° rotation!\n- 🕹️ **Click the Computers / Arcade:** Launches the **Cyber Bug Hunter** retro arcade game!\n- 🤖 **Click Me (White AI Robot):** Opens this interactive AI assistant!`;
+    }
+    return `**Bật mí về Căn phòng IT 3D này!** 🎮\n\nCăn phòng được xây dựng bằng **Three.js & WebGL**, mô phỏng không gian làm việc của một Full-Stack Developer:\n- 🐱 **Bấm vào chú mèo:** Chú mèo sẽ nảy tưng tưng và kêu 'Meowww~'\n- 💀 **Bấm vào bộ xương:** Lắc lư hài hước biểu tượng dev cày cuốc đêm!\n- 🤖 **Bấm vào Robot / Trụ:** Robot nhảy và xoay 360 độ phát sáng!\n- 💺 **Bấm vào ghế:** Ghế công thái học xoay tròn 360 độ!\n- 🕹️ **Bấm vào máy tính / máy game:** Mở ngay tựa game **Cyber Bug Hunter** để giải trí!\n- 🤖 **Và bấm vào tôi (Robot AI màu trắng):** Mở hộp thoại trò chuyện thông minh này!`;
   }
 
-  return `Cảm ơn câu hỏi của bạn về **"${query}"**! Đỗ Văn Tuyến Đoàn là một Full-stack Developer tận tâm, giàu kinh nghiệm thực chiến với Next.js, React Native, Node.js và hệ thống 3D WebGL. Bạn có muốn xem thêm về các dự án thực tế hay thông tin liên hệ phỏng vấn không?`;
+  if (lang === "en") {
+    return `Thank you for your question about **"${query}"**! Tuyen Doan is a dedicated Full-Stack Software Engineer with proven experience across Next.js, React Native, Node.js, and interactive 3D WebGL systems. Would you like to explore his featured projects or get in touch for collaboration?`;
+  }
+  return `Cảm ơn câu hỏi của bạn về **"${query}"**! Đỗ Văn Tuyến Đoàn là một Full-stack Developer tận tâm, giàu kinh nghiệm thực chiến với Next.js, React Native, Node.js và hệ thống 3D WebGL. Bạn có muốn xem thêm về các dự án thực tế hay thông tin liên hệ không?`;
 }
 
 export default function AIChatModal({
@@ -59,16 +116,31 @@ export default function AIChatModal({
   isOpen: boolean;
   onClose: () => void;
 }) {
-  const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES);
+  const { language } = useLanguage();
+  const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
+  // Initialize or reset welcome message when language or modal opens
   useEffect(() => {
     if (isOpen) {
       playAiChimeSound();
+      const welcomeText =
+        language === "en"
+          ? "Hello! 👋 I'm **Doan AI Assistant** - connected directly to the 3D Room Robot of **Tuyen Doan**.\n\nI can share insights on **work experience**, **featured projects** (HUIT Fest, HUIT Startup, SOF SaaS, ELH E-Commerce...), **technical skills**, or **how to connect for opportunities**. What would you like to know?"
+          : "Xin chào! 👋 Tôi là **Doan AI Assistant** - Trợ lý thông minh được kết nối trực tiếp từ Robot trong không gian 3D của **Đỗ Văn Tuyến Đoàn**.\n\nTôi có thể cung cấp chi tiết về **kinh nghiệm làm việc**, **các dự án tiêu biểu** (HUIT Fest, HUIT Startup, SOF SaaS, ELH E-Commerce...), **kỹ năng công nghệ** hoặc **kết nối phỏng vấn**. Bạn muốn tìm hiểu điều gì?";
+
+      setMessages([
+        {
+          id: "welcome-1",
+          sender: "ai",
+          text: welcomeText,
+          time: language === "en" ? "Just now" : "Vừa xong",
+        },
+      ]);
     }
-  }, [isOpen]);
+  }, [isOpen, language]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -82,7 +154,7 @@ export default function AIChatModal({
       id: `user-${Date.now()}`,
       sender: "user",
       text,
-      time: "Vừa xong",
+      time: language === "en" ? "Just now" : "Vừa xong",
     };
 
     setMessages((prev) => [...prev, userMsg]);
@@ -91,19 +163,21 @@ export default function AIChatModal({
 
     // Simulate AI thinking and streaming response
     setTimeout(() => {
-      const reply = generateAiResponse(text);
+      const reply = generateAiResponse(text, language);
       const aiMsg: Message = {
         id: `ai-${Date.now()}`,
         sender: "ai",
         text: reply,
-        time: "Vừa xong",
+        time: language === "en" ? "Just now" : "Vừa xong",
       };
       setMessages((prev) => [...prev, aiMsg]);
       setIsTyping(false);
-    }, 700);
+    }, 600);
   };
 
   if (!isOpen) return null;
+
+  const prompts = language === "en" ? SUGGESTED_PROMPTS_EN : SUGGESTED_PROMPTS_VI;
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center sm:justify-end bg-black/75 backdrop-blur-md p-3 sm:p-6">
@@ -124,7 +198,7 @@ export default function AIChatModal({
               </div>
               <p className="text-[11px] font-medium text-emerald-400 flex items-center gap-1">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                Trực tuyến · Sẵn sàng giải đáp
+                {language === "en" ? "Online · Ready to assist" : "Trực tuyến · Sẵn sàng giải đáp"}
               </p>
             </div>
           </div>
@@ -133,7 +207,7 @@ export default function AIChatModal({
             type="button"
             onClick={onClose}
             className="cursor-pointer rounded-full bg-white/10 p-2 text-white/70 hover:bg-white/20 hover:text-white transition"
-            title="Đóng (ESC)"
+            title={language === "en" ? "Close (ESC)" : "Đóng (ESC)"}
           >
             ✕
           </button>
@@ -176,7 +250,9 @@ export default function AIChatModal({
               <span className="flex h-2 w-2 rounded-full bg-cyan-400 animate-bounce" />
               <span className="flex h-2 w-2 rounded-full bg-cyan-400 animate-bounce [animation-delay:0.2s]" />
               <span className="flex h-2 w-2 rounded-full bg-cyan-400 animate-bounce [animation-delay:0.4s]" />
-              <span className="text-[11px] text-white/50">AI đang gõ...</span>
+              <span className="text-[11px] text-white/50">
+                {language === "en" ? "AI is typing..." : "AI đang gõ..."}
+              </span>
             </div>
           )}
 
@@ -185,9 +261,11 @@ export default function AIChatModal({
 
         {/* Quick Suggestion Prompts */}
         <div className="border-t border-white/10 bg-[#071328]/95 px-4 py-2.5">
-          <p className="text-[10px] font-bold uppercase tracking-wider text-white/40 mb-1.5">Gợi ý câu hỏi:</p>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-white/40 mb-1.5">
+            {language === "en" ? "Suggested Questions:" : "Gợi ý câu hỏi:"}
+          </p>
           <div className="flex flex-wrap gap-1.5 max-h-[72px] overflow-y-auto">
-            {SUGGESTED_PROMPTS.map((prompt) => (
+            {prompts.map((prompt) => (
               <button
                 key={prompt}
                 type="button"
@@ -212,7 +290,11 @@ export default function AIChatModal({
             type="text"
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
-            placeholder="Hỏi AI về kinh nghiệm, dự án, tech stack..."
+            placeholder={
+              language === "en"
+                ? "Ask AI about experience, projects, tech stack..."
+                : "Hỏi AI về kinh nghiệm, dự án, tech stack..."
+            }
             className="flex-1 rounded-xl border border-white/10 bg-white/[0.05] px-3.5 py-2.5 text-xs text-white placeholder-white/40 outline-none focus:border-cyan-400/60 focus:bg-white/[0.08] transition"
           />
           <button
@@ -220,7 +302,7 @@ export default function AIChatModal({
             disabled={!inputText.trim() || isTyping}
             className="cursor-pointer rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 px-4 py-2.5 text-xs font-bold text-white shadow-[0_0_16px_rgba(6,182,212,0.4)] transition hover:brightness-110 disabled:opacity-40 disabled:cursor-not-allowed active:scale-95"
           >
-            Gửi ✈
+            {language === "en" ? "Send ✈" : "Gửi ✈"}
           </button>
         </form>
       </div>

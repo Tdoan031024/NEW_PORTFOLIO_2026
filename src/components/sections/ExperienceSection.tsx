@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
+import { useLanguage } from "@/components/LanguageProvider";
 
 export type Experience = {
   id: string;
@@ -248,26 +249,30 @@ function LogoMarker({ type }: { type: Experience["logo"] }) {
 
 function ExperienceCard({
   item,
-  isSelected = false,
+  isSelected,
   onSelect,
+  onClick,
 }: {
   item: Experience;
   isSelected?: boolean;
-  onSelect: () => void;
+  onSelect?: () => void;
+  onClick?: () => void;
 }) {
+  const { language } = useLanguage();
+  const handleClick = onSelect || onClick || (() => {});
   return (
     <article
-      onClick={onSelect}
-      className={`group relative w-full cursor-pointer rounded-[18px] border p-5 sm:p-7 transition-all duration-300 ${
+      onClick={handleClick}
+      className={`group relative cursor-pointer overflow-hidden rounded-2xl border p-4 sm:p-5 transition-all duration-300 ${
         isSelected
-          ? "border-cyan-400 bg-[linear-gradient(165deg,rgba(14,35,70,0.95),rgba(9,22,48,0.92)_55%,rgba(7,16,36,0.92))] shadow-[0_0_0_1px_rgba(34,211,238,0.4),0_18px_45px_rgba(34,211,238,0.22)] -translate-y-1"
-          : "border-white/10 bg-[linear-gradient(165deg,rgba(12,20,40,0.92),rgba(8,14,30,0.9)_55%,rgba(6,12,26,0.9))] hover:-translate-y-1 hover:border-cyan-300/40 hover:shadow-[0_16px_40px_rgba(34,211,238,0.14)]"
+          ? "border-cyan-400 bg-[linear-gradient(180deg,rgba(8,20,44,0.98),rgba(5,14,32,0.98))] shadow-[0_0_35px_rgba(34,211,238,0.3)] ring-1 ring-cyan-400/50"
+          : "border-white/10 bg-[linear-gradient(180deg,rgba(10,18,36,0.85),rgba(6,12,28,0.85))] shadow-[0_12px_30px_rgba(0,0,0,0.32)] hover:-translate-y-1 hover:border-cyan-300/40 hover:shadow-[0_16px_38px_rgba(34,211,238,0.14)]"
       }`}
     >
-      {/* Indicator góc khi được chọn */}
+      {/* Huy hiệu chỉ báo đang được chọn */}
       {isSelected && (
         <div className="absolute -top-2.5 right-4 z-10 flex items-center gap-1.5 rounded-full border border-cyan-300/60 bg-cyan-400 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-slate-950 shadow-[0_0_14px_rgba(34,211,238,0.8)]">
-          <span>●</span> Đang xem chi tiết
+          <span>●</span> {language === "vi" ? "Đang xem chi tiết" : "Viewing Details"}
         </div>
       )}
 
@@ -350,7 +355,7 @@ function ExperienceCard({
         ) : <div />}
 
         <div className="flex items-center gap-1.5 text-[11px] font-semibold text-cyan-300/80 group-hover:text-cyan-200 transition">
-          <span>Xem mô tả đầy đủ</span>
+          <span>{language === "vi" ? "Xem mô tả đầy đủ" : "View Full Overview"}</span>
           <span className="transition-transform group-hover:translate-x-1">→</span>
         </div>
       </div>
@@ -366,6 +371,8 @@ function CompanyDetailShowcase({
   experience: Experience;
   onClose?: () => void;
 }) {
+  const { language } = useLanguage();
+
   return (
     <motion.div
       key={experience.id}
@@ -388,7 +395,7 @@ function CompanyDetailShowcase({
           <div>
             <div className="flex items-center gap-2">
               <span className="text-[11px] font-mono font-bold text-emerald-400 uppercase tracking-widest bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
-                Company Spotlight
+                {language === "vi" ? "Hồ sơ năng lực" : "Company Spotlight"}
               </span>
               {experience.shortName && (
                 <span className="text-[10px] font-bold text-white/50 bg-white/5 px-2 py-0.5 rounded">
@@ -407,7 +414,7 @@ function CompanyDetailShowcase({
             type="button"
             onClick={onClose}
             className="text-white/40 hover:text-white p-1.5 rounded-lg bg-white/5 hover:bg-white/10 transition cursor-pointer text-xs"
-            title="Đóng panel"
+            title={language === "vi" ? "Đóng panel" : "Close panel"}
           >
             ✕
           </button>
@@ -417,11 +424,15 @@ function CompanyDetailShowcase({
       {/* Meta thông tin */}
       <div className="mt-4 grid grid-cols-2 gap-2 text-xs font-medium shrink-0">
         <div className="rounded-xl bg-white/[0.04] p-2.5 border border-white/5">
-          <div className="text-white/50 text-[10px] uppercase font-bold tracking-wider">Vai trò</div>
+          <div className="text-white/50 text-[10px] uppercase font-bold tracking-wider">
+            {language === "vi" ? "Vai trò" : "Role"}
+          </div>
           <div className="mt-0.5 font-bold text-cyan-300">{experience.title}</div>
         </div>
         <div className="rounded-xl bg-white/[0.04] p-2.5 border border-white/5">
-          <div className="text-white/50 text-[10px] uppercase font-bold tracking-wider">Thời gian</div>
+          <div className="text-white/50 text-[10px] uppercase font-bold tracking-wider">
+            {language === "vi" ? "Thời gian" : "Timeline"}
+          </div>
           <div className="mt-0.5 font-bold text-white/90">{experience.date}</div>
         </div>
       </div>
@@ -434,7 +445,7 @@ function CompanyDetailShowcase({
       {/* Mô tả tổng quan đầy đủ */}
       <div className="mt-5 space-y-2 shrink-0">
         <h4 className="text-xs font-black uppercase tracking-wider text-cyan-300 flex items-center gap-1.5">
-          <span>🏢</span> Giới thiệu về công ty
+          <span>🏢</span> {language === "vi" ? "Giới thiệu về công ty" : "About the Company"}
         </h4>
         <p className="text-xs leading-relaxed text-white/80 font-normal bg-white/[0.02] p-3.5 rounded-xl border border-white/5">
           {experience.fullOverview}
@@ -444,7 +455,7 @@ function CompanyDetailShowcase({
       {/* Điểm sáng & Trách nhiệm chính */}
       <div className="mt-5 space-y-2.5 shrink-0">
         <h4 className="text-xs font-black uppercase tracking-wider text-cyan-300 flex items-center gap-1.5">
-          <span>⚡</span> Đóng góp & Trách nhiệm công nghệ
+          <span>⚡</span> {language === "vi" ? "Đóng góp & Trách nhiệm công nghệ" : "Key Contributions & Engineering"}
         </h4>
         <ul className="space-y-2 text-xs text-white/80">
           {experience.highlights.map((item, idx) => (
@@ -460,7 +471,7 @@ function CompanyDetailShowcase({
       {experience.keyProjects && experience.keyProjects.length > 0 && (
         <div className="mt-5 space-y-2 shrink-0">
           <h4 className="text-xs font-black uppercase tracking-wider text-cyan-300 flex items-center gap-1.5">
-            <span>🚀</span> Dự án tiêu biểu đã triển khai
+            <span>🚀</span> {language === "vi" ? "Dự án tiêu biểu đã triển khai" : "Key Deployed Projects"}
           </h4>
           <div className="space-y-2">
             {experience.keyProjects.map((proj, idx) => (
@@ -479,7 +490,7 @@ function CompanyDetailShowcase({
                     rel="noreferrer"
                     className="shrink-0 text-[11px] font-semibold text-cyan-300 hover:text-cyan-100 hover:underline px-2 py-1 rounded bg-cyan-400/10 border border-cyan-400/30 transition"
                   >
-                    Mở ↗
+                    {language === "vi" ? "Mở ↗" : "Open ↗"}
                   </a>
                 )}
               </div>
@@ -491,14 +502,20 @@ function CompanyDetailShowcase({
       {/* Nút hành động */}
       {experience.website && (
         <div className="mt-6 pt-4 border-t border-white/10 flex items-center justify-between gap-3 shrink-0">
-          <span className="text-[11px] text-white/50">Trang chủ doanh nghiệp:</span>
+          <span className="text-[11px] text-white/50">
+            {language === "vi" ? "Trang chủ doanh nghiệp:" : "Official Website:"}
+          </span>
           <a
             href={experience.website}
             target="_blank"
             rel="noreferrer"
             className="cursor-pointer inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 px-4 py-2 text-xs font-bold text-white shadow-lg shadow-cyan-500/25 hover:from-cyan-400 hover:to-blue-500 transition active:scale-95"
           >
-            <span>Truy cập {experience.websiteLabel ?? "Website"}</span>
+            <span>
+              {language === "vi"
+                ? `Truy cập ${experience.websiteLabel ?? "Website"}`
+                : `Visit ${experience.websiteLabel ?? "Website"}`}
+            </span>
             <span>↗</span>
           </a>
         </div>
@@ -508,6 +525,7 @@ function CompanyDetailShowcase({
 }
 
 export default function ExperienceSection() {
+  const { language } = useLanguage();
   // Mặc định ẩn khung bên phải, chỉ khi người dùng click vào thẻ mới hiện
   const [selectedExp, setSelectedExp] = useState<Experience | null>(null);
   const [isMobileModalOpen, setIsMobileModalOpen] = useState(false);
@@ -570,13 +588,15 @@ export default function ExperienceSection() {
       <div className={`mx-auto transition-all duration-500 ${selectedExp ? "max-w-[1360px]" : "max-w-[820px]"}`}>
         <div className="text-center">
           <p className="text-[11px] font-extrabold uppercase tracking-[0.42em] text-white/40">
-            WHERE I&apos;VE WORKED
+            {language === "vi" ? "LỊCH SỬ CÔNG TÁC" : "WHERE I'VE WORKED"}
           </p>
           <h2 className="mt-4 text-[42px] font-black leading-[0.95] tracking-[-0.055em] text-white sm:text-[54px] md:text-[62px]">
-            Experience
+            {language === "vi" ? "Kinh nghiệm làm việc" : "Experience"}
           </h2>
           <p className="mt-3 text-xs sm:text-sm text-cyan-200/70 max-w-xl mx-auto">
-            Hành trình kỹ thuật thực tế qua các doanh nghiệp công nghệ, dự án SaaS quy mô lớn và hệ sinh thái ứng dụng di động.
+            {language === "vi"
+              ? "Hành trình kỹ thuật thực tế qua các doanh nghiệp công nghệ, dự án SaaS quy mô lớn và hệ sinh thái ứng dụng di động."
+              : "Real-world engineering journey across tech enterprises, scalable SaaS platforms, and mobile application ecosystems."}
           </p>
         </div>
 

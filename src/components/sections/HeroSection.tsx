@@ -117,7 +117,7 @@ function clampTilt(value: number, max = 7) {
 }
 
 export default function HeroSection() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [text, setText] = useState("");
   const [modelGuideMounted, setModelGuideMounted] = useState(false);
   const [modelGuideVisible, setModelGuideVisible] = useState(false);
@@ -189,7 +189,7 @@ export default function HeroSection() {
       observer.disconnect();
       timers.forEach((timer) => window.clearTimeout(timer));
     };
-  }, []);
+  }, [isEditingGuides]);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!canTilt) return;
@@ -210,7 +210,10 @@ export default function HeroSection() {
   };
 
   useEffect(() => {
-    const titles = [t("heroTitle"), "Hi! I'm Full-Stack Developer", "Hi! I'm Mobile Developer"];
+    const titles =
+      language === "vi"
+        ? [t("heroTitle"), "Kỹ sư Full-Stack", "Lập trình viên Di động"]
+        : [t("heroTitle"), "Full-Stack Software Engineer", "Mobile App Developer"];
 
     const handleTyping = () => {
       const i = loopNum % titles.length;
@@ -234,7 +237,7 @@ export default function HeroSection() {
 
     const timer = setTimeout(handleTyping, typingSpeed);
     return () => clearTimeout(timer);
-  }, [text, isDeleting, loopNum, typingSpeed, t]);
+  }, [text, isDeleting, loopNum, typingSpeed, t, language]);
 
   return (
     <section
@@ -250,7 +253,7 @@ export default function HeroSection() {
             className="inline-flex items-center gap-3 rounded-full border border-cyan-300/20 bg-white/[0.035] px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-cyan-100/85 shadow-[0_0_34px_rgba(34,211,238,.08)] backdrop-blur-md"
           >
             <span className="h-2 w-2 rounded-full bg-cyan-300 shadow-[0_0_14px_rgba(34,211,238,.8)]" />
-            Fullstack Developer
+            {t("heroKicker")}
           </motion.div>
 
           <motion.h1
@@ -284,7 +287,7 @@ export default function HeroSection() {
               href="#projects"
               className="rounded-full bg-cyan-300 px-5 py-3 text-sm font-semibold text-slate-950 shadow-[0_14px_34px_rgba(34,211,238,.18)] transition hover:-translate-y-0.5 hover:bg-cyan-200"
             >
-              View Projects
+              {t("heroCtaProjects")}
             </a>
             <a
               href="/assets/file/Fullstack_Developer-Do_Van_Tuyen_Doan.pdf"
@@ -302,7 +305,7 @@ export default function HeroSection() {
               href="#contact"
               className="rounded-full border border-white/15 bg-white/[0.035] px-5 py-3 text-sm font-semibold text-white/82 backdrop-blur-sm transition hover:-translate-y-0.5 hover:border-cyan-200/45 hover:text-cyan-100"
             >
-              Contact Me
+              {t("heroCtaContact")}
             </a>
           </motion.div>
 

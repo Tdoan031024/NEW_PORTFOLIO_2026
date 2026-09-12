@@ -1,15 +1,7 @@
 "use client";
 
 import Link from "next/link";
-
-const navLinks = [
-  { label: "About Me", href: "#hero" },
-  { label: "Tech Stack", href: "#skills" },
-  { label: "Featured Projects", href: "#projects" },
-  { label: "Experience", href: "#experience" },
-  { label: "Get in Touch", href: "#contact" },
-  { label: "Download CV (PDF)", href: "/assets/file/Fullstack_Developer-Do_Van_Tuyen_Doan.pdf", isDownload: true },
-];
+import { useLanguage } from "@/components/LanguageProvider";
 
 const featuredProjects = [
   { label: "HUIT FEST 2026", href: "https://huitfest.huitmedia.edu.vn/", isExternal: true },
@@ -51,6 +43,17 @@ const socialLinks = [
 ];
 
 export default function SiteFooter() {
+  const { language, t } = useLanguage();
+
+  const navLinks = [
+    { label: language === "vi" ? "Về bản thân" : "About Me", href: "#hero" },
+    { label: language === "vi" ? "Kỹ năng & Công nghệ" : "Tech Stack", href: "#skills" },
+    { label: language === "vi" ? "Dự án Nổi bật" : "Featured Projects", href: "#projects" },
+    { label: language === "vi" ? "Kinh nghiệm làm việc" : "Experience", href: "#experience" },
+    { label: language === "vi" ? "Liên hệ" : "Get in Touch", href: "#contact" },
+    { label: language === "vi" ? "Tải CV (PDF)" : "Download CV (PDF)", href: "/assets/file/Fullstack_Developer-Do_Van_Tuyen_Doan.pdf", isDownload: true },
+  ];
+
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -80,12 +83,14 @@ export default function SiteFooter() {
             </a>
 
             <p className="max-w-sm text-sm leading-6 text-white/65">
-              Full-Stack Software Engineer focused on crafting scalable products, modern architectures, and engaging interactive experiences.
+              {language === "vi"
+                ? "Kỹ sư phần mềm Full-Stack tập trung vào xây dựng các sản phẩm có khả năng mở rộng, kiến trúc hiện đại và trải nghiệm tương tác trực quan."
+                : "Full-Stack Software Engineer focused on crafting scalable products, modern architectures, and engaging interactive experiences."}
             </p>
 
             <div className="pt-1 text-xs text-white/50 space-y-1.5">
               <p className="flex items-center gap-2">
-                <span>📍</span> Ho Chi Minh City, Vietnam
+                <span>📍</span> {t("contactLocation")}
               </p>
               <p className="flex items-center gap-2">
                 <span>📞</span>
@@ -105,7 +110,7 @@ export default function SiteFooter() {
           {/* Navigation Links (Col 2: span 2) */}
           <div className="lg:col-span-2 space-y-3">
             <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-cyan-300">
-              Navigation
+              {language === "vi" ? "Điều hướng" : "Navigation"}
             </p>
             <ul className="space-y-2.5 text-sm">
               {navLinks.map((item) => (
@@ -128,7 +133,7 @@ export default function SiteFooter() {
           {/* Featured Projects (Col 3: span 3) */}
           <div className="lg:col-span-3 space-y-3">
             <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-cyan-300">
-              Featured Work
+              {language === "vi" ? "Dự án Tiêu biểu" : "Featured Work"}
             </p>
             <ul className="space-y-2.5 text-sm">
               {featuredProjects.map((item) => (
@@ -162,7 +167,7 @@ export default function SiteFooter() {
           {/* Connect & Socials (Col 4: span 2) */}
           <div className="lg:col-span-2 space-y-3">
             <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-cyan-300">
-              Connect
+              {language === "vi" ? "Kết nối" : "Connect"}
             </p>
             <div className="flex flex-wrap gap-2">
               {socialLinks.map((item) => (
@@ -185,7 +190,7 @@ export default function SiteFooter() {
                 href="#contact"
                 className="inline-flex items-center gap-2 rounded-full border border-cyan-400/40 bg-cyan-500/10 px-4 py-2 text-xs font-bold text-cyan-200 shadow-sm transition-all duration-300 hover:border-cyan-300 hover:bg-cyan-500/20 hover:text-white"
               >
-                <span>Let&apos;s Connect</span>
+                <span>{language === "vi" ? "Gửi lời nhắn" : "Let's Connect"}</span>
                 <span>→</span>
               </a>
             </div>
@@ -201,7 +206,7 @@ export default function SiteFooter() {
             onClick={scrollToTop}
             className="group inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3.5 py-1.5 text-xs font-medium text-white/70 transition-all hover:border-cyan-400/40 hover:bg-cyan-400/10 hover:text-cyan-200"
           >
-            <span>Back to top</span>
+            <span>{language === "vi" ? "Về đầu trang" : "Back to top"}</span>
             <svg
               className="h-3.5 w-3.5 transition-transform duration-300 group-hover:-translate-y-0.5"
               fill="none"

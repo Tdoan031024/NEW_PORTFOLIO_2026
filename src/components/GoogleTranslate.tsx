@@ -18,8 +18,8 @@ type LanguageItem = {
 };
 
 const LANGUAGES: readonly LanguageItem[] = [
-  { code: "vi", label: "Tiếng Việt", native: "Việt Nam", short: "VIE" },
   { code: "en", label: "English", native: "United States", short: "ENG" },
+  { code: "vi", label: "Tiếng Việt", native: "Việt Nam", short: "VIE" },
 ] as const;
 
 function FlagIcon({ code, className = "w-5 h-3.5" }: { code: string; className?: string }) {
@@ -81,7 +81,7 @@ function FlagIcon({ code, className = "w-5 h-3.5" }: { code: string; className?:
 export default function GoogleTranslate() {
   const { language: appLanguage, setLanguage: setAppLanguage } = useLanguage();
   const [open, setOpen] = useState(false);
-  const [selected, setSelected] = useState<"vi" | "en">(appLanguage ?? "vi");
+  const [selected, setSelected] = useState<"vi" | "en">(appLanguage ?? "en");
   const wrapRef = useRef<HTMLDivElement | null>(null);
 
   // Keep in sync with appLanguage
@@ -97,8 +97,11 @@ export default function GoogleTranslate() {
   );
 
   const applyLanguage = (code: "vi" | "en") => {
-    // 1. Sync React context dictionary
+    // 1. Sync React context dictionary & LocalStorage
     setAppLanguage(code);
+    try {
+      window.localStorage.setItem("language", code);
+    } catch (_) {}
 
     // 2. Sync Google Translate widget
     const combo = document.querySelector(".goog-te-combo") as HTMLSelectElement | null;
@@ -109,8 +112,15 @@ export default function GoogleTranslate() {
 
     // 3. Set persistent cookie
     try {
-      document.cookie = `googtrans=/vi/${code}; path=/; domain=${window.location.hostname}`;
-      document.cookie = `googtrans=/vi/${code}; path=/;`;
+      if (code === "vi") {
+        document.cookie = `googtrans=/vi/vi; path=/; domain=${window.location.hostname}`;
+        document.cookie = `googtrans=/vi/vi; path=/;`;
+        document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${window.location.hostname}`;
+      } else {
+        document.cookie = `googtrans=/vi/en; path=/; domain=${window.location.hostname}`;
+        document.cookie = `googtrans=/vi/en; path=/;`;
+      }
     } catch (_) {}
 
     setSelected(code);
@@ -138,16 +148,31 @@ export default function GoogleTranslate() {
     };
   }, [open]);
 
-  // Read existing Google Translate cookie on mount
+  // Read existing language on mount or default to English
   useEffect(() => {
-    const match = document.cookie.match(/googtrans=\/([^/]+)\/([^;]+)/);
-    if (match && match[2]) {
-      const code = match[2];
-      if (code === "vi" || code === "en") {
-        setSelected(code);
-        setAppLanguage(code);
-      }
+    const saved = typeof window !== "undefined" ? window.localStorage.getItem("language") : null;
+    if (saved === "vi" || saved === "en") {
+      setSelected(saved as "vi" | "en");
+      setAppLanguage(saved as "vi" | "en");
+      return;
     }
+
+    const match = document.cookie.match(/googtrans=\/([^/]+)\/([^;]+)/);
+    if (match && (match[2] === "vi" || match[2] === "en")) {
+      const code = match[2] as "vi" | "en";
+      setSelected(code);
+      setAppLanguage(code);
+      return;
+    }
+
+    // Mặc định vào web lần đầu là tiếng Anh ("en")
+    setSelected("en");
+    setAppLanguage("en");
+    try {
+      window.localStorage.setItem("language", "en");
+      document.cookie = `googtrans=/vi/en; path=/; domain=${window.location.hostname}`;
+      document.cookie = `googtrans=/vi/en; path=/;`;
+    } catch (_) {}
   }, [setAppLanguage]);
 
   useEffect(() => {
