@@ -16,7 +16,7 @@ const ibmPlexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://new-portfolio-2026.pages.dev"),
+  metadataBase: new URL("https://tuyendoan.id.vn"),
   title: {
     default: "Tuyen Doan | Full-Stack Software Engineer",
     template: "%s | Tuyen Doan",
@@ -35,13 +35,15 @@ export const metadata: Metadata = {
     title: "Tuyen Doan | Full-Stack Software Engineer",
     description:
       "Khám phá các dự án công nghệ, giải pháp web quy mô lớn và năng lực chuyên môn của Tuyen Doan.",
+    url: "https://tuyendoan.id.vn",
     siteName: "Tuyen Doan Portfolio",
     images: [
       {
-        url: "/assets/logo/signature-white.png",
+        url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "Tuyen Doan Signature Logo",
+        alt: "Tuyen Doan | Full-Stack Software Engineer Portfolio",
+        type: "image/png",
       },
     ],
     locale: "vi_VN",
@@ -52,7 +54,7 @@ export const metadata: Metadata = {
     title: "Tuyen Doan | Full-Stack Software Engineer",
     description:
       "Khám phá các dự án công nghệ, giải pháp web quy mô lớn và năng lực chuyên môn của Tuyen Doan.",
-    images: ["/assets/logo/signature-white.png"],
+    images: ["/og-image.png"],
   },
 };
 
