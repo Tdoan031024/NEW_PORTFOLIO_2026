@@ -373,10 +373,14 @@ function CompanyDetailShowcase({
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: -16, scale: 0.98 }}
       transition={{ duration: 0.35, ease: "easeOut" }}
-      className="relative flex flex-col rounded-2xl border border-cyan-400/40 bg-[#071328]/95 p-6 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.6),0_0_35px_rgba(34,211,238,0.18)] text-white"
+      onWheel={(e) => {
+        // Ngăn sự kiện cuộn lan ra ngoài trang web
+        e.stopPropagation();
+      }}
+      className="relative flex flex-col rounded-2xl border border-cyan-400/40 bg-[#071328]/95 p-6 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.6),0_0_35px_rgba(34,211,238,0.18)] text-white max-h-[calc(100vh-150px)] overflow-y-auto overscroll-contain select-text [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-cyan-500/30 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-transparent"
     >
       {/* Header */}
-      <div className="flex items-start justify-between gap-4 pb-4 border-b border-white/10">
+      <div className="flex items-start justify-between gap-4 pb-4 border-b border-white/10 shrink-0">
         <div className="flex items-center gap-3.5">
           <div className="h-12 w-12 shrink-0 overflow-hidden rounded-xl border border-white/20 bg-[#081124] p-1.5 shadow-md ring-2 ring-cyan-400/30">
             <LogoMarker type={experience.logo} />
@@ -411,7 +415,7 @@ function CompanyDetailShowcase({
       </div>
 
       {/* Meta thông tin */}
-      <div className="mt-4 grid grid-cols-2 gap-2 text-xs font-medium">
+      <div className="mt-4 grid grid-cols-2 gap-2 text-xs font-medium shrink-0">
         <div className="rounded-xl bg-white/[0.04] p-2.5 border border-white/5">
           <div className="text-white/50 text-[10px] uppercase font-bold tracking-wider">Vai trò</div>
           <div className="mt-0.5 font-bold text-cyan-300">{experience.title}</div>
@@ -422,13 +426,13 @@ function CompanyDetailShowcase({
         </div>
       </div>
 
-      <div className="mt-2 flex items-center justify-between text-[11px] text-white/60 px-1">
+      <div className="mt-2 flex items-center justify-between text-[11px] text-white/60 px-1 shrink-0">
         <span>📍 {experience.location}</span>
         {experience.teamSize && <span>👥 {experience.teamSize}</span>}
       </div>
 
       {/* Mô tả tổng quan đầy đủ */}
-      <div className="mt-5 space-y-2">
+      <div className="mt-5 space-y-2 shrink-0">
         <h4 className="text-xs font-black uppercase tracking-wider text-cyan-300 flex items-center gap-1.5">
           <span>🏢</span> Giới thiệu về công ty
         </h4>
@@ -438,7 +442,7 @@ function CompanyDetailShowcase({
       </div>
 
       {/* Điểm sáng & Trách nhiệm chính */}
-      <div className="mt-5 space-y-2.5">
+      <div className="mt-5 space-y-2.5 shrink-0">
         <h4 className="text-xs font-black uppercase tracking-wider text-cyan-300 flex items-center gap-1.5">
           <span>⚡</span> Đóng góp & Trách nhiệm công nghệ
         </h4>
@@ -454,7 +458,7 @@ function CompanyDetailShowcase({
 
       {/* Các dự án liên quan */}
       {experience.keyProjects && experience.keyProjects.length > 0 && (
-        <div className="mt-5 space-y-2">
+        <div className="mt-5 space-y-2 shrink-0">
           <h4 className="text-xs font-black uppercase tracking-wider text-cyan-300 flex items-center gap-1.5">
             <span>🚀</span> Dự án tiêu biểu đã triển khai
           </h4>
@@ -486,7 +490,7 @@ function CompanyDetailShowcase({
 
       {/* Nút hành động */}
       {experience.website && (
-        <div className="mt-6 pt-4 border-t border-white/10 flex items-center justify-between gap-3">
+        <div className="mt-6 pt-4 border-t border-white/10 flex items-center justify-between gap-3 shrink-0">
           <span className="text-[11px] text-white/50">Trang chủ doanh nghiệp:</span>
           <a
             href={experience.website}
@@ -504,7 +508,8 @@ function CompanyDetailShowcase({
 }
 
 export default function ExperienceSection() {
-  const [selectedExp, setSelectedExp] = useState<Experience | null>(experiences[0]);
+  // Mặc định ẩn khung bên phải, chỉ khi người dùng click vào thẻ mới hiện
+  const [selectedExp, setSelectedExp] = useState<Experience | null>(null);
   const [isMobileModalOpen, setIsMobileModalOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
@@ -532,6 +537,17 @@ export default function ExperienceSection() {
     };
   }, []);
 
+  // Khóa cuộn trang web ở ngoài khi mở modal trên thiết bị di động
+  useEffect(() => {
+    if (isMobileModalOpen) {
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.body.style.overflow = originalOverflow;
+      };
+    }
+  }, [isMobileModalOpen]);
+
   const handleSelect = (item: Experience) => {
     // Nếu bấm lại chính thẻ đang mở -> Đóng
     if (selectedExp?.id === item.id) {
@@ -551,7 +567,7 @@ export default function ExperienceSection() {
       id="experience"
       className="bg-transparent px-4 pb-16 pt-6 text-white sm:px-6 sm:pb-20 sm:pt-10 lg:px-8 lg:pb-24 lg:pt-12"
     >
-      <div className="mx-auto max-w-[1360px]">
+      <div className={`mx-auto transition-all duration-500 ${selectedExp ? "max-w-[1360px]" : "max-w-[820px]"}`}>
         <div className="text-center">
           <p className="text-[11px] font-extrabold uppercase tracking-[0.42em] text-white/40">
             WHERE I&apos;VE WORKED
@@ -564,13 +580,17 @@ export default function ExperienceSection() {
           </p>
         </div>
 
-        {/* Layout chia 2 cột: Cột trái là Timeline Cards, Cột phải là Panel Chi Tiết Công Ty ở khoảng trống */}
+        {/* Layout: Mặc định ở giữa trang, khi click thẻ sẽ mở rộng sang 2 cột */}
         <div
           ref={containerRef}
-          className="mt-10 sm:mt-14 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start"
+          className={`mt-10 sm:mt-14 transition-all duration-500 ${
+            selectedExp
+              ? "grid grid-cols-1 lg:grid-cols-12 gap-8 items-start"
+              : "max-w-[780px] mx-auto"
+          }`}
         >
-          {/* Cột trái: Trục Timeline và các thẻ kinh nghiệm (chiếm 7/12) */}
-          <div className="lg:col-span-7 xl:col-span-7">
+          {/* Cột trái: Trục Timeline và các thẻ kinh nghiệm */}
+          <div className={selectedExp ? "lg:col-span-7 xl:col-span-7" : "w-full"}>
             <div className="relative">
               {experiences.map((timelineItem, index) => {
                 const isItemLast = index === experiences.length - 1;
@@ -621,49 +641,28 @@ export default function ExperienceSection() {
             </div>
           </div>
 
-          {/* Cột phải trên Desktop: Panel mô tả chi tiết công ty ở khoảng trống (chiếm 5/12) */}
-          <div className="hidden lg:block lg:col-span-5 xl:col-span-5 sticky top-28">
-            <div className="mb-2 flex items-center justify-between text-xs text-white/50 px-1">
-              <span className="flex items-center gap-1.5 font-mono">
-                <span className={`h-2 w-2 rounded-full ${selectedExp ? "bg-cyan-400 animate-pulse" : "bg-white/30"}`} />
-                HỒ SƠ NĂNG LỰC DOANH NGHIỆP
-              </span>
-              <span className="text-[11px] text-cyan-300/70">
-                {selectedExp ? "Bấm lại thẻ hoặc bấm ngoài để đóng" : "Bấm thẻ bên trái để xem"}
-              </span>
-            </div>
+          {/* Cột phải trên Desktop: CHỈ HIỆN KHI BẤM VÀO THẺ (Mặc định ẩn) */}
+          {selectedExp && (
+            <div className="hidden lg:block lg:col-span-5 xl:col-span-5 sticky top-28 animate-in fade-in slide-in-from-right-4 duration-300">
+              <div className="mb-2 flex items-center justify-between text-xs text-white/50 px-1">
+                <span className="flex items-center gap-1.5 font-mono">
+                  <span className="h-2 w-2 rounded-full bg-cyan-400 animate-pulse" />
+                  HỒ SƠ NĂNG LỰC DOANH NGHIỆP
+                </span>
+                <span className="text-[11px] text-cyan-300/70">
+                  Bấm lại thẻ hoặc ngoài để đóng
+                </span>
+              </div>
 
-            <AnimatePresence mode="wait">
-              {selectedExp ? (
+              <AnimatePresence mode="wait">
                 <CompanyDetailShowcase
                   key={selectedExp.id}
                   experience={selectedExp}
                   onClose={() => setSelectedExp(null)}
                 />
-              ) : (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.96 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.96 }}
-                  transition={{ duration: 0.25 }}
-                  className="rounded-2xl border border-dashed border-cyan-400/25 bg-cyan-950/10 p-8 text-center text-white/50 flex flex-col items-center justify-center min-h-[380px] backdrop-blur-sm shadow-inner"
-                >
-                  <div className="h-14 w-14 rounded-2xl bg-cyan-400/10 border border-cyan-400/25 flex items-center justify-center text-3xl mb-4 text-cyan-300 shadow-md">
-                    🏢
-                  </div>
-                  <h4 className="text-sm font-black text-cyan-200 uppercase tracking-wider">
-                    Hồ sơ năng lực doanh nghiệp
-                  </h4>
-                  <p className="mt-2 text-xs text-white/60 max-w-xs leading-relaxed">
-                    Nhấp vào bất kỳ thẻ kinh nghiệm nào ở bên trái để xem mô tả chuyên sâu, vai trò kỹ thuật và các dự án đã triển khai.
-                  </p>
-                  <div className="mt-5 flex items-center gap-1.5 text-[11px] font-mono text-cyan-400/90 bg-cyan-400/10 px-3 py-1 rounded-full border border-cyan-400/20">
-                    <span>💡 Nhấp thẻ để mở · Nhấp ra ngoài để đóng</span>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
+              </AnimatePresence>
+            </div>
+          )}
         </div>
       </div>
 
@@ -679,7 +678,7 @@ export default function ExperienceSection() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 50 }}
               onClick={(e) => e.stopPropagation()}
-              className="max-h-[85vh] w-full sm:max-w-xl overflow-y-auto rounded-t-3xl sm:rounded-2xl cursor-default"
+              className="max-h-[85vh] w-full sm:max-w-xl overflow-hidden rounded-t-3xl sm:rounded-2xl cursor-default shadow-2xl"
             >
               <CompanyDetailShowcase
                 experience={selectedExp}
