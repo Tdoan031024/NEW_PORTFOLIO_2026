@@ -19,7 +19,7 @@ const experiences: Experience[] = [
   {
     logo: "cluega",
     title: "Full-Stack Engineer",
-    company: "Cluega",
+    company: "Cluega | Full-Lifecycle AI Work Assistant",
     shortName: "CLUEGA",
     website: "https://cluega.com",
     websiteLabel: "cluega.com",
@@ -31,7 +31,7 @@ const experiences: Experience[] = [
   {
     logo: "sof",
     title: "Full-stack Developer",
-    company: "Cong ty TNHH SOF",
+    company: "SOF | Phần mềm quản trị doanh nghiệp & chuyển đổi số",
     shortName: "SOF",
     website: "https://sof.com.vn",
     websiteLabel: "sof.com.vn",

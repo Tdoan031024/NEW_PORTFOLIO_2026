@@ -6,6 +6,17 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { KTX2Loader } from "three/examples/jsm/loaders/KTX2Loader.js";
 import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.js";
+import CyberGameModal from "@/components/modals/CyberGameModal";
+import AIChatModal from "@/components/modals/AIChatModal";
+import RoomInteractionToast from "@/components/modals/RoomInteractionToast";
+import {
+  playCatMeowSound,
+  playSkeletonSound,
+  playRobotBeepSound,
+  playChairSwivelSound,
+  playArcadeStartSound,
+  playAiChimeSound,
+} from "@/utils/audioEffects";
 
 type HeroThreeProps = {
   modelUrl?: string;
@@ -83,6 +94,39 @@ const EXTERNAL_MESH_PATTERNS: Record<ExternalTarget, RegExp[]> = {
 };
 
 const BALL_MESH_PATTERNS: RegExp[] = [/Sphere\s*_217/i, /Object_369/i];
+
+type InteractiveAction = "cat" | "skeleton" | "robot" | "chair" | "game" | "aiChat";
+
+const INTERACTIVE_MESH_PATTERNS: Record<InteractiveAction, RegExp[]> = {
+  cat: [
+    /mesh_4_13/i,
+    /5b797f59-c865-459a-905a-a08ec50fe60e/i,
+  ],
+  skeleton: [
+    /mesh_15_2/i,
+    /e048d591-49ed-4813-87e2-6e31d2406a42/i,
+  ],
+  robot: [
+    /Cylinder013_308/i,
+    /Cylinder\.013_308/i,
+    /8c387a86-6b41-460f-888a-07e037819d1a/i,
+  ],
+  chair: [
+    /mesh_4_19/i,
+    /a244cb12-1528-4a35-a7c3-31b571189c8a/i,
+  ],
+  game: [
+    /mesh_0_1/i,
+    /d7f30481-3d71-446a-aea5-29d54d880a8a/i,
+    /mesh_4_11/i,
+    /325e07a6-b7ca-4015-aa73-6e426c8f3568/i,
+  ],
+  aiChat: [
+    /Object_577/i,
+    /e26da717-5f04-4d76-acfb-e54d89a9cb86/i,
+    /Robot_White_Glossy/i,
+  ],
+};
 
 type Rig = {
   head?: THREE.Object3D | null;
@@ -200,6 +244,19 @@ export default function HeroThree({
   });
   const [copied, setCopied] = useState(false);
   const [isModelLoading, setIsModelLoading] = useState(true);
+  const [isGameOpen, setIsGameOpen] = useState(false);
+  const [isAiChatOpen, setIsAiChatOpen] = useState(false);
+
+  useEffect(() => {
+    const handleOpenGame = () => setIsGameOpen(true);
+    const handleOpenAi = () => setIsAiChatOpen(true);
+    window.addEventListener("open-cyber-game-modal", handleOpenGame);
+    window.addEventListener("open-ai-chat-modal", handleOpenAi);
+    return () => {
+      window.removeEventListener("open-cyber-game-modal", handleOpenGame);
+      window.removeEventListener("open-ai-chat-modal", handleOpenAi);
+    };
+  }, []);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -365,6 +422,34 @@ export default function HeroThree({
     let ballBaseY = 0;
     let ballBounceStartAt = 0;
     let ballBounceUntil = 0;
+
+    // Interactive 3D Elements Nodes & Animation States
+    let catNode: THREE.Object3D | null = null;
+    let catBaseY = 0;
+    let catBaseRotZ = 0;
+    let catBaseScaleY = 1;
+    let catAnimStartAt = 0;
+    let catAnimUntil = 0;
+
+    let skeletonNode: THREE.Object3D | null = null;
+    let skelBaseX = 0;
+    let skelBaseY = 0;
+    let skelBaseRotX = 0;
+    let skelBaseRotZ = 0;
+    let skeletonAnimStartAt = 0;
+    let skeletonAnimUntil = 0;
+
+    let robotNode: THREE.Object3D | null = null;
+    let robotBaseY = 0;
+    let robotBaseRotY = 0;
+    let robotAnimStartAt = 0;
+    let robotAnimUntil = 0;
+
+    let chairNode: THREE.Object3D | null = null;
+    let chairBaseY = 0;
+    let chairBaseRotY = 0;
+    let chairAnimStartAt = 0;
+    let chairAnimUntil = 0;
     let rig: Rig = {};
     const actions = new Map<string, THREE.AnimationAction>();
     let activeAction: THREE.AnimationAction | null = null;
@@ -462,21 +547,41 @@ export default function HeroThree({
 
     const resolveTargetByName = (
       object: THREE.Object3D | null | undefined,
-    ): { nav?: NavTarget; external?: ExternalTarget; ball?: boolean } => {
+    ): {
+      nav?: NavTarget;
+      external?: ExternalTarget;
+      ball?: boolean;
+      interactive?: InteractiveAction;
+      hitNode?: THREE.Object3D;
+    } => {
       let current: THREE.Object3D | null | undefined = object;
       while (current) {
         const name = current.name ?? "";
-        if (BALL_MESH_PATTERNS.some((pattern) => pattern.test(name))) {
-          return { ball: true };
-        }
-        for (const [target, patterns] of Object.entries(NAV_MESH_PATTERNS)) {
-          if (patterns.some((pattern) => pattern.test(name))) {
-            return { nav: target as NavTarget };
+        const uuid = current.uuid ?? "";
+
+        // 1. Kiểm tra các đối tượng tương tác đặc biệt (Mèo, Bộ xương, Robot, Ghế, Game, Robot AI)
+        for (const [action, patterns] of Object.entries(INTERACTIVE_MESH_PATTERNS)) {
+          if (patterns.some((pattern) => pattern.test(name) || pattern.test(uuid))) {
+            return { interactive: action as InteractiveAction, hitNode: current };
           }
         }
+
+        // 2. Quả bóng nảy
+        if (BALL_MESH_PATTERNS.some((pattern) => pattern.test(name) || pattern.test(uuid))) {
+          return { ball: true, hitNode: current };
+        }
+
+        // 3. Bảng điều hướng
+        for (const [target, patterns] of Object.entries(NAV_MESH_PATTERNS)) {
+          if (patterns.some((pattern) => pattern.test(name) || pattern.test(uuid))) {
+            return { nav: target as NavTarget, hitNode: current };
+          }
+        }
+
+        // 4. Liên kết mạng xã hội
         for (const [target, patterns] of Object.entries(EXTERNAL_MESH_PATTERNS)) {
-          if (patterns.some((pattern) => pattern.test(name))) {
-            return { external: target as ExternalTarget };
+          if (patterns.some((pattern) => pattern.test(name) || pattern.test(uuid))) {
+            return { external: target as ExternalTarget, hitNode: current };
           }
         }
         current = current.parent;
@@ -486,12 +591,18 @@ export default function HeroThree({
 
     const resolveTarget = (
       hit: THREE.Intersection | undefined,
-    ): { nav?: NavTarget; external?: ExternalTarget; ball?: boolean } => {
+    ): {
+      nav?: NavTarget;
+      external?: ExternalTarget;
+      ball?: boolean;
+      interactive?: InteractiveAction;
+      hitNode?: THREE.Object3D;
+    } => {
       if (!hit) return {};
 
-      // 1. Tên mesh (hỗ trợ model gốc nếu còn lưu name)
+      // 1. Tên mesh hoặc UUID của node
       const byName = resolveTargetByName(hit.object);
-      if (byName.nav || byName.external || byName.ball) {
+      if (byName.interactive || byName.nav || byName.external || byName.ball) {
         return byName;
       }
 
@@ -567,12 +678,36 @@ export default function HeroThree({
           };
 
           modelRoot.traverse((child) => {
-            if (ballNode || !child.name) return;
-            if (BALL_MESH_PATTERNS.some((pattern) => pattern.test(child.name))) {
+            const name = child.name ?? "";
+            const uuid = child.uuid ?? "";
+            if (!ballNode && BALL_MESH_PATTERNS.some((pattern) => pattern.test(name) || pattern.test(uuid))) {
               ballNode = child;
+              ballBaseY = child.position.y;
+            }
+            if (!catNode && INTERACTIVE_MESH_PATTERNS.cat.some((p) => p.test(name) || p.test(uuid))) {
+              catNode = child;
+              catBaseY = child.position.y;
+              catBaseRotZ = child.rotation.z;
+              catBaseScaleY = child.scale.y;
+            }
+            if (!skeletonNode && INTERACTIVE_MESH_PATTERNS.skeleton.some((p) => p.test(name) || p.test(uuid))) {
+              skeletonNode = child;
+              skelBaseX = child.position.x;
+              skelBaseY = child.position.y;
+              skelBaseRotX = child.rotation.x;
+              skelBaseRotZ = child.rotation.z;
+            }
+            if (!robotNode && INTERACTIVE_MESH_PATTERNS.robot.some((p) => p.test(name) || p.test(uuid))) {
+              robotNode = child;
+              robotBaseY = child.position.y;
+              robotBaseRotY = child.rotation.y;
+            }
+            if (!chairNode && INTERACTIVE_MESH_PATTERNS.chair.some((p) => p.test(name) || p.test(uuid))) {
+              chairNode = child;
+              chairBaseY = child.position.y;
+              chairBaseRotY = child.rotation.y;
             }
           });
-          if (ballNode) ballBaseY = ballNode.position.y;
 
           if (gltf.animations.length) {
             mixer = new THREE.AnimationMixer(modelRoot);
@@ -657,7 +792,7 @@ export default function HeroThree({
         hovered = true;
         lookTarget.set(pointer.x, pointer.y);
         const hitTarget = resolveTarget(hits[0]);
-        if (controls && enableRotate && !hitTarget.nav && !hitTarget.external && !hitTarget.ball) {
+        if (controls && enableRotate && !hitTarget.nav && !hitTarget.external && !hitTarget.ball && !hitTarget.interactive) {
           controls.enabled = true;
         } else if (controls) {
           controls.enabled = false;
@@ -709,6 +844,120 @@ export default function HeroThree({
       }
 
       const hitTarget = resolveTarget(hits[0]);
+
+      // 1. Tương tác với các thành phần 3D độc đáo theo yêu cầu
+      if (hitTarget.interactive) {
+        const action = hitTarget.interactive;
+
+        if (action === "cat") {
+          playCatMeowSound();
+          if (hitTarget.hitNode) catNode = hitTarget.hitNode;
+          if (catNode) {
+            catBaseY = catNode.position.y;
+            catBaseRotZ = catNode.rotation.z;
+            catBaseScaleY = catNode.scale.y;
+          }
+          catAnimStartAt = performance.now();
+          catAnimUntil = catAnimStartAt + 1500;
+          window.dispatchEvent(
+            new CustomEvent("room-3d-interact", {
+              detail: {
+                id: `cat-${Date.now()}`,
+                type: "cat",
+                icon: "🐱",
+                title: "Miu Miu Code Reviewer",
+                message: "Meowww! Mèo cam đang tích cực giám sát Tuyến Đoàn fix bug và review pull request! 🐾",
+              },
+            }),
+          );
+          return;
+        }
+
+        if (action === "skeleton") {
+          playSkeletonSound();
+          if (hitTarget.hitNode) skeletonNode = hitTarget.hitNode;
+          if (skeletonNode) {
+            skelBaseX = skeletonNode.position.x;
+            skelBaseY = skeletonNode.position.y;
+            skelBaseRotX = skeletonNode.rotation.x;
+            skelBaseRotZ = skeletonNode.rotation.z;
+          }
+          skeletonAnimStartAt = performance.now();
+          skeletonAnimUntil = skeletonAnimStartAt + 1600;
+          window.dispatchEvent(
+            new CustomEvent("room-3d-interact", {
+              detail: {
+                id: `skel-${Date.now()}`,
+                type: "skeleton",
+                icon: "💀",
+                title: "Late Night Dev (Bộ Xương Cày Deadline)",
+                message: "Rattle rattle! Di cốt của một coder thức 3 đêm giải quyết NullPointer mà quên uống nước! ⚡",
+              },
+            }),
+          );
+          return;
+        }
+
+        if (action === "robot") {
+          playRobotBeepSound();
+          if (hitTarget.hitNode) robotNode = hitTarget.hitNode;
+          if (robotNode) {
+            robotBaseY = robotNode.position.y;
+            robotBaseRotY = robotNode.rotation.y;
+          }
+          robotAnimStartAt = performance.now();
+          robotAnimUntil = robotAnimStartAt + 1400;
+          window.dispatchEvent(
+            new CustomEvent("room-3d-interact", {
+              detail: {
+                id: `bot-${Date.now()}`,
+                type: "robot",
+                icon: "🤖",
+                title: "Trợ Lý Tự Động Hóa 308",
+                message: "Bíp bíp bíp! Đã nạp đầy cà phê và sẵn sàng auto-deploy production an toàn tuyệt đối! 🚀",
+              },
+            }),
+          );
+          return;
+        }
+
+        if (action === "chair") {
+          playChairSwivelSound();
+          if (hitTarget.hitNode) chairNode = hitTarget.hitNode;
+          if (chairNode) {
+            chairBaseY = chairNode.position.y;
+            chairBaseRotY = chairNode.rotation.y;
+          }
+          chairAnimStartAt = performance.now();
+          chairAnimUntil = chairAnimStartAt + 1800;
+          window.dispatchEvent(
+            new CustomEvent("room-3d-interact", {
+              detail: {
+                id: `chair-${Date.now()}`,
+                type: "chair",
+                icon: "🪑",
+                title: "Ghế Công Thái Học Ergonomic",
+                message: "Wheeee~ Xoay 360 độ êm ái, bệ đỡ thắt lưng giúp Tuyến Đoàn ngồi code 10 tiếng không đau mỏi! ✨",
+              },
+            }),
+          );
+          return;
+        }
+
+        if (action === "game") {
+          playArcadeStartSound();
+          window.dispatchEvent(new CustomEvent("open-cyber-game-modal"));
+          setIsGameOpen(true);
+          return;
+        }
+
+        if (action === "aiChat") {
+          playAiChimeSound();
+          window.dispatchEvent(new CustomEvent("open-ai-chat-modal"));
+          setIsAiChatOpen(true);
+          return;
+        }
+      }
 
       if (hitTarget.ball) {
         ballBounceStartAt = performance.now();
@@ -779,13 +1028,14 @@ export default function HeroThree({
             lookTarget.set(pointer.x, pointer.y);
           }
           const hitTarget = hits.length ? resolveTarget(hits[0]) : {};
-          renderer.domElement.style.cursor = hitTarget.nav || hitTarget.external || hitTarget.ball
-            ? "pointer"
-            : isHover
-              ? isPointerDownOnModel
-                ? "grabbing"
-                : "grab"
-              : "default";
+          renderer.domElement.style.cursor =
+            hitTarget.interactive || hitTarget.nav || hitTarget.external || hitTarget.ball
+              ? "pointer"
+              : isHover
+                ? isPointerDownOnModel
+                  ? "grabbing"
+                  : "grab"
+                : "default";
         }
       }
 
@@ -890,6 +1140,68 @@ export default function HeroThree({
         }
       }
 
+      // Animation Con mèo (mesh_4_13) - Nảy tưng tưng + nhún squish & stretch vui nhộn
+      if (catNode) {
+        if (now < catAnimUntil) {
+          const elapsed = (now - catAnimStartAt) / 1000;
+          const progress = Math.max(0, (catAnimUntil - now) / 1500);
+          const bounce = Math.abs(Math.sin(elapsed * 12)) * 0.28 * progress;
+          catNode.position.y = catBaseY + bounce;
+          catNode.scale.y = catBaseScaleY * (1 + (bounce > 0.06 ? 0.18 : -0.12) * progress);
+          catNode.rotation.z = catBaseRotZ + Math.sin(elapsed * 15) * 0.16 * progress;
+        } else {
+          catNode.position.y = catBaseY;
+          catNode.scale.y = catBaseScaleY;
+          catNode.rotation.z = catBaseRotZ;
+        }
+      }
+
+      // Animation Bộ xương (mesh_15_2) - Rung lắc rùng rợn, lách cách hài hước
+      if (skeletonNode) {
+        if (now < skeletonAnimUntil) {
+          const elapsed = (now - skeletonAnimStartAt) / 1000;
+          const progress = Math.max(0, (skeletonAnimUntil - now) / 1600);
+          skeletonNode.position.x = skelBaseX + (Math.random() - 0.5) * 0.09 * progress;
+          skeletonNode.position.y = skelBaseY + (Math.random() - 0.5) * 0.07 * progress;
+          skeletonNode.rotation.z = skelBaseRotZ + Math.sin(elapsed * 28) * 0.22 * progress;
+          skeletonNode.rotation.x = skelBaseRotX + Math.cos(elapsed * 22) * 0.18 * progress;
+        } else {
+          skeletonNode.position.x = skelBaseX;
+          skeletonNode.position.y = skelBaseY;
+          skeletonNode.rotation.z = skelBaseRotZ;
+          skeletonNode.rotation.x = skelBaseRotX;
+        }
+      }
+
+      // Animation Robot (Cylinder013_308) - Nhảy cẫng lên và xoay 360 độ
+      if (robotNode) {
+        if (now < robotAnimUntil) {
+          const elapsed = (now - robotAnimStartAt) / 1000;
+          const progress = Math.max(0, (robotAnimUntil - now) / 1400);
+          const hop = Math.abs(Math.sin(elapsed * 10)) * 0.32 * progress;
+          robotNode.position.y = robotBaseY + hop;
+          robotNode.rotation.y = robotBaseRotY + elapsed * Math.PI * 4;
+        } else {
+          robotNode.position.y = robotBaseY;
+          robotNode.rotation.y = robotBaseRotY;
+        }
+      }
+
+      // Animation Ghế (mesh_4_19) - Xoay tròn 360 độ + nhún lò xo
+      if (chairNode) {
+        if (now < chairAnimUntil) {
+          const elapsed = (now - chairAnimStartAt) / 1000;
+          const progress = Math.max(0, (chairAnimUntil - now) / 1800);
+          const spring = Math.sin(elapsed * 14) * 0.07 * progress;
+          chairNode.position.y = chairBaseY + spring;
+          const spinProgress = 1 - Math.pow(1 - Math.min(1, elapsed / 1.8), 3);
+          chairNode.rotation.y = chairBaseRotY + spinProgress * Math.PI * 4;
+        } else {
+          chairNode.position.y = chairBaseY;
+          chairNode.rotation.y = chairBaseRotY;
+        }
+      }
+
       if (enableFloat && !prefersReducedMotion && !lowPowerDevice && !hasUserInteracted) {
         group.rotation.y = Math.sin(performance.now() * 0.0004) * 0.08;
         group.rotation.x = Math.sin(performance.now() * 0.0003) * 0.04;
@@ -973,6 +1285,17 @@ export default function HeroThree({
     };
   }, [enableHover, enableInteraction, modelUrl, enableControls, enablePan, enableZoom, showCoordinateHelper]);
 
+  useEffect(() => {
+    const handleOpenGame = () => setIsGameOpen(true);
+    const handleOpenAi = () => setIsAiChatOpen(true);
+    window.addEventListener("open-cyber-game-modal", handleOpenGame);
+    window.addEventListener("open-ai-chat-modal", handleOpenAi);
+    return () => {
+      window.removeEventListener("open-cyber-game-modal", handleOpenGame);
+      window.removeEventListener("open-ai-chat-modal", handleOpenAi);
+    };
+  }, []);
+
   const handleReset = () => {
     if (!controlsRef.current || !cameraRef.current) return;
     cameraRef.current.position.set(defaultCam.x, defaultCam.y, defaultCam.z);
@@ -1002,6 +1325,22 @@ export default function HeroThree({
         </div>
       )}
       <div ref={containerRef} className={className ?? "h-full w-full"} />
+
+      {/* Toast thông báo lời thoại khi tương tác các vật thể 3D (Mèo, Bộ xương, Robot, Ghế) */}
+      <RoomInteractionToast />
+
+      {/* Mini-Game Arcade "Cyber Bug Hunter 2026" khi click vào Máy Game 3D */}
+      <CyberGameModal
+        isOpen={isGameOpen}
+        onClose={() => setIsGameOpen(false)}
+      />
+
+      {/* Hộp thoại Chat AI tương tác thông minh khi click vào Robot AI màu trắng */}
+      <AIChatModal
+        isOpen={isAiChatOpen}
+        onClose={() => setIsAiChatOpen(false)}
+      />
+
       {showCoordinateHelper && (
         <div className="pointer-events-auto fixed bottom-6 left-6 z-[999] flex flex-col gap-2.5 rounded-2xl border border-cyan-400/30 bg-slate-950/90 p-4 text-xs text-white shadow-2xl backdrop-blur-xl max-w-sm sm:max-w-md">
           <div className="flex items-center justify-between gap-3">
