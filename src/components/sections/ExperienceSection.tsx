@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 
@@ -504,12 +504,43 @@ function CompanyDetailShowcase({
 }
 
 export default function ExperienceSection() {
-  const [selectedExp, setSelectedExp] = useState<Experience>(experiences[0]);
+  const [selectedExp, setSelectedExp] = useState<Experience | null>(experiences[0]);
   const [isMobileModalOpen, setIsMobileModalOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
+  // Đóng trang/panel chi tiết khi bấm ra ngoài hoặc nhấn phím Escape
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setSelectedExp(null);
+        setIsMobileModalOpen(false);
+      }
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setSelectedExp(null);
+        setIsMobileModalOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
 
   const handleSelect = (item: Experience) => {
+    // Nếu bấm lại chính thẻ đang mở -> Đóng
+    if (selectedExp?.id === item.id) {
+      setSelectedExp(null);
+      setIsMobileModalOpen(false);
+      return;
+    }
+    // Ngược lại -> Mở thẻ được chọn
     setSelectedExp(item);
-    // Nếu màn hình di động/tablet, mở modal popup
     if (typeof window !== "undefined" && window.innerWidth < 1024) {
       setIsMobileModalOpen(true);
     }
@@ -534,13 +565,16 @@ export default function ExperienceSection() {
         </div>
 
         {/* Layout chia 2 cột: Cột trái là Timeline Cards, Cột phải là Panel Chi Tiết Công Ty ở khoảng trống */}
-        <div className="mt-10 sm:mt-14 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <div
+          ref={containerRef}
+          className="mt-10 sm:mt-14 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start"
+        >
           {/* Cột trái: Trục Timeline và các thẻ kinh nghiệm (chiếm 7/12) */}
           <div className="lg:col-span-7 xl:col-span-7">
             <div className="relative">
               {experiences.map((timelineItem, index) => {
                 const isItemLast = index === experiences.length - 1;
-                const isSelected = selectedExp.id === timelineItem.id;
+                const isSelected = selectedExp?.id === timelineItem.id;
 
                 return (
                   <div
@@ -591,17 +625,43 @@ export default function ExperienceSection() {
           <div className="hidden lg:block lg:col-span-5 xl:col-span-5 sticky top-28">
             <div className="mb-2 flex items-center justify-between text-xs text-white/50 px-1">
               <span className="flex items-center gap-1.5 font-mono">
-                <span className="h-2 w-2 rounded-full bg-cyan-400 animate-pulse" />
+                <span className={`h-2 w-2 rounded-full ${selectedExp ? "bg-cyan-400 animate-pulse" : "bg-white/30"}`} />
                 HỒ SƠ NĂNG LỰC DOANH NGHIỆP
               </span>
-              <span className="text-[11px] text-cyan-300/70">Bấm thẻ bên trái để chuyển</span>
+              <span className="text-[11px] text-cyan-300/70">
+                {selectedExp ? "Bấm lại thẻ hoặc bấm ngoài để đóng" : "Bấm thẻ bên trái để xem"}
+              </span>
             </div>
 
             <AnimatePresence mode="wait">
-              <CompanyDetailShowcase
-                key={selectedExp.id}
-                experience={selectedExp}
-              />
+              {selectedExp ? (
+                <CompanyDetailShowcase
+                  key={selectedExp.id}
+                  experience={selectedExp}
+                  onClose={() => setSelectedExp(null)}
+                />
+              ) : (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.96 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.96 }}
+                  transition={{ duration: 0.25 }}
+                  className="rounded-2xl border border-dashed border-cyan-400/25 bg-cyan-950/10 p-8 text-center text-white/50 flex flex-col items-center justify-center min-h-[380px] backdrop-blur-sm shadow-inner"
+                >
+                  <div className="h-14 w-14 rounded-2xl bg-cyan-400/10 border border-cyan-400/25 flex items-center justify-center text-3xl mb-4 text-cyan-300 shadow-md">
+                    🏢
+                  </div>
+                  <h4 className="text-sm font-black text-cyan-200 uppercase tracking-wider">
+                    Hồ sơ năng lực doanh nghiệp
+                  </h4>
+                  <p className="mt-2 text-xs text-white/60 max-w-xs leading-relaxed">
+                    Nhấp vào bất kỳ thẻ kinh nghiệm nào ở bên trái để xem mô tả chuyên sâu, vai trò kỹ thuật và các dự án đã triển khai.
+                  </p>
+                  <div className="mt-5 flex items-center gap-1.5 text-[11px] font-mono text-cyan-400/90 bg-cyan-400/10 px-3 py-1 rounded-full border border-cyan-400/20">
+                    <span>💡 Nhấp thẻ để mở · Nhấp ra ngoài để đóng</span>
+                  </div>
+                </motion.div>
+              )}
             </AnimatePresence>
           </div>
         </div>
@@ -609,13 +669,17 @@ export default function ExperienceSection() {
 
       {/* Popup Modal chi tiết cho màn hình Di động & Tablet (lg:hidden) */}
       <AnimatePresence>
-        {isMobileModalOpen && (
-          <div className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-md">
+        {isMobileModalOpen && selectedExp && (
+          <div
+            onClick={() => setIsMobileModalOpen(false)}
+            className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-md cursor-pointer"
+          >
             <motion.div
               initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 50 }}
-              className="max-h-[85vh] w-full sm:max-w-xl overflow-y-auto rounded-t-3xl sm:rounded-2xl"
+              onClick={(e) => e.stopPropagation()}
+              className="max-h-[85vh] w-full sm:max-w-xl overflow-y-auto rounded-t-3xl sm:rounded-2xl cursor-default"
             >
               <CompanyDetailShowcase
                 experience={selectedExp}
