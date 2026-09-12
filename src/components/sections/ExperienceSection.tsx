@@ -30,7 +30,7 @@ const experiences: Experience[] = [
   },
   {
     logo: "sof",
-    title: "Full-stack Developer / Software Developer",
+    title: "Full-stack Developer",
     company: "Cong ty TNHH SOF",
     shortName: "SOF",
     website: "https://sof.com.vn",
@@ -42,7 +42,7 @@ const experiences: Experience[] = [
   },
   {
     logo: "huitMedia",
-    title: "Full-stack Developer / Web Developer",
+    title: "Full-stack Developer",
     company:
       "HUIT MEDIA - Kenh Thong tin va Truyen thong Truong Dai hoc Cong Thuong TP. Ho Chi Minh",
     shortName: "HUIT MEDIA",
@@ -54,7 +54,7 @@ const experiences: Experience[] = [
   },
   {
     logo: "iec",
-    title: "Full-stack developer",
+    title: "Full-stack Developer",
     company: "CENTER OF INNOVATION AND ENTREPRENEURSHIP",
     shortName: "IEC",
     website: "https://iec.huit.edu.vn/",
