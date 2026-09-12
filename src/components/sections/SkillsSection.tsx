@@ -73,7 +73,7 @@ type DragState = {
 };
 
 const PROFILE = {
-  name: "Doan Tuyen",
+  name: "Tuyen Doan",
   subtitle: "Full Stack Developer",
   avatar: "/assets/anhdoanprofile.png",
 };

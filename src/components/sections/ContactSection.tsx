@@ -73,9 +73,19 @@ export default function ContactSection() {
                 Have a role, project, or idea in mind? Let&apos;s turn it into a modern, scalable, and meaningful digital product.
               </p>
               <div className="mt-7 space-y-2 text-sm text-white/60">
-                <p>Email: hello@doan.tech</p>
+                <p>
+                  Email:{" "}
+                  <a href="mailto:dovantuyendoan14@gmail.com" className="text-cyan-300 hover:underline">
+                    dovantuyendoan14@gmail.com
+                  </a>
+                </p>
+                <p>
+                  Điện thoại:{" "}
+                  <a href="tel:0888854212" className="text-cyan-300 hover:underline">
+                    0888854212
+                  </a>
+                </p>
                 <p>Ho Chi Minh City, Vietnam</p>
-                <p>Open to full-time and freelance collaboration.</p>
               </div>
             </motion.div>
 

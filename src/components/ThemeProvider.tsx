@@ -15,14 +15,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>("dark");
 
   useEffect(() => {
-    const stored = window.localStorage.getItem("theme");
-    if (stored === "light" || stored === "dark") {
-      setTheme(stored);
-      return;
-    }
-
-    const prefersLight = window.matchMedia?.("(prefers-color-scheme: light)").matches;
-    setTheme(prefersLight ? "light" : "dark");
+    // Mặc định luôn là dark mode
+    setTheme("dark");
+    document.documentElement.dataset.theme = "dark";
+    document.documentElement.style.colorScheme = "dark";
+    window.localStorage.setItem("theme", "dark");
   }, []);
 
   useEffect(() => {

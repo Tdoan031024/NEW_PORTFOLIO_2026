@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { KTX2Loader } from "three/examples/jsm/loaders/KTX2Loader.js";
+import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.js";
 
 type HeroThreeProps = {
   modelUrl?: string;
@@ -12,6 +14,10 @@ type HeroThreeProps = {
   className?: string;
   introZoom?: boolean;
   enableControls?: boolean;
+  enableRotate?: boolean;
+  enablePan?: boolean;
+  enableZoom?: boolean;
+  showCoordinateHelper?: boolean;
   enableInteraction?: boolean;
   enableHover?: boolean;
   enableFloat?: boolean;
@@ -19,21 +25,22 @@ type HeroThreeProps = {
   initialTarget?: { x: number; y: number; z: number };
   initialModelRotationY?: number;
   modelOffset?: { x?: number; y?: number; z?: number };
+  maxRotationAngle?: number;
 };
 
-const DEFAULT_MODEL_URL = "/assets/models/room_IT_3d.glb";
+const DEFAULT_MODEL_URL = "/assets/models/room-IT-3d-normal.glb";
 type NavTarget = "about" | "skills" | "works" | "contact";
 type ExternalTarget = "mail" | "facebook" | "github" | "linkedin";
 
 const NAV_SECTION_IDS: Record<NavTarget, string[]> = {
-  about: ["hero", "about"],
+  about: ["about", "hero"],
   skills: ["skills"],
   works: ["projects", "works"],
   contact: ["contact"],
 };
 
 const EXTERNAL_LINKS: Record<ExternalTarget, string> = {
-  mail: "mailto:hello@doan.tech",
+  mail: "mailto:dovantuyendoan14@gmail.com",
   facebook: "https://www.facebook.com/doans.310",
   github: "https://github.com/Tdoan031024",
   linkedin: "https://www.linkedin.com/in/dvtd/",
@@ -164,6 +171,10 @@ export default function HeroThree({
   className,
   introZoom = false,
   enableControls = true,
+  enableRotate = false,
+  enablePan = true,
+  enableZoom = true,
+  showCoordinateHelper = false,
   enableInteraction = true,
   enableHover = true,
   enableFloat = true,
@@ -171,8 +182,23 @@ export default function HeroThree({
   initialTarget,
   initialModelRotationY,
   modelOffset,
+  maxRotationAngle = Math.PI / 2,
 }: HeroThreeProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const controlsRef = useRef<OrbitControls | null>(null);
+  const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
+
+  const defaultCam = initialCameraPosition ?? { x: 1.7, y: 2.04, z: 2.27 };
+  const defaultTarget = initialTarget ?? { x: -0.05, y: 1, z: 0 };
+
+  const [coords, setCoords] = useState<{
+    cam: { x: number; y: number; z: number };
+    target: { x: number; y: number; z: number };
+  }>({
+    cam: defaultCam,
+    target: defaultTarget,
+  });
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -204,41 +230,110 @@ export default function HeroThree({
       0.1,
       100,
     );
-    const baseCameraPosition = initialCameraPosition ?? { x: 0, y: 1.1, z: 3.2 };
-    let dynamicBaseZ = baseCameraPosition.z;
-    const introStartZ = introZoom ? dynamicBaseZ + 1.2 : dynamicBaseZ;
-    camera.position.set(
-      baseCameraPosition.x,
-      baseCameraPosition.y,
-      introStartZ,
-    );
+    cameraRef.current = camera;
+    const baseCameraPosition = initialCameraPosition ?? defaultCam;
+    const baseTarget = initialTarget ?? defaultTarget;
+
+    const startCamPos = {
+      x: baseCameraPosition.x * 1.35,
+      y: baseCameraPosition.y * 1.25,
+      z: baseCameraPosition.z * 1.45,
+    };
+    const startTargetPos = {
+      x: baseTarget.x,
+      y: baseTarget.y,
+      z: baseTarget.z,
+    };
+
+    if (introZoom) {
+      camera.position.set(startCamPos.x, startCamPos.y, startCamPos.z);
+    } else {
+      camera.position.set(baseCameraPosition.x, baseCameraPosition.y, baseCameraPosition.z);
+    }
 
     let controls: OrbitControls | null = null;
-    const canUseControls = Boolean(enableControls && !isCoarsePointer);
+    let hasUserInteracted = false;
+    let hasBouncedIntro = false;
+    const canUseControls = Boolean(enableControls && (enableRotate || enablePan || enableZoom));
     if (canUseControls) {
       controls = new OrbitControls(camera, renderer.domElement);
-      controls.enableDamping = true;
-      controls.enablePan = false;
-      controls.enableZoom = false;
-      controls.minDistance = 1.6;
-      controls.maxDistance = 6;
-      controls.enabled = true;
-      if (initialTarget) {
-        controls.target.set(initialTarget.x, initialTarget.y, initialTarget.z);
+      controlsRef.current = controls;
+      controls.enableDamping = introZoom ? false : true;
+      controls.dampingFactor = 0.05;
+      controls.enableRotate = Boolean(enableRotate);
+      controls.enablePan = enablePan;
+      controls.enableZoom = Boolean(enableZoom);
+      if (!enableZoom) {
+        const camDist = new THREE.Vector3(baseCameraPosition.x, baseCameraPosition.y, baseCameraPosition.z).distanceTo(
+          new THREE.Vector3(baseTarget.x, baseTarget.y, baseTarget.z),
+        );
+        controls.minDistance = camDist;
+        controls.maxDistance = camDist;
+      } else {
+        controls.minDistance = 0.2;
+        controls.maxDistance = 25;
       }
+      // Giới hạn góc xoay ngang (Azimuth): Cung 90 độ (±45 độ quanh góc nhìn mặc định)
+      const baseAzimuth = Math.atan2(
+        baseCameraPosition.x - baseTarget.x,
+        baseCameraPosition.z - baseTarget.z,
+      );
+      const halfAngle = maxRotationAngle / 2;
+      controls.minAzimuthAngle = baseAzimuth - halfAngle;
+      controls.maxAzimuthAngle = baseAzimuth + halfAngle;
+
+      // Giới hạn góc xoay dọc (Polar): tránh lật ngược hoặc chìm xuống dưới sàn
+      const camDistForPolar = new THREE.Vector3(baseCameraPosition.x, baseCameraPosition.y, baseCameraPosition.z).distanceTo(
+        new THREE.Vector3(baseTarget.x, baseTarget.y, baseTarget.z),
+      );
+      const basePolar = Math.acos((baseCameraPosition.y - baseTarget.y) / Math.max(0.001, camDistForPolar));
+      controls.minPolarAngle = Math.max(0.3, basePolar - Math.PI / 6); // Nhìn hơi nghiêng từ trên xuống
+      controls.maxPolarAngle = Math.min(Math.PI * 0.48, basePolar + Math.PI / 8); // Chặn không bị chui xuống dưới sàn
+
+      controls.enabled = false;
+      controls.target.set(baseTarget.x, baseTarget.y, baseTarget.z);
+
+      controls.addEventListener("start", () => {
+        if (introZoom && !introCompleted) return;
+        hasUserInteracted = true;
+        controls!.enableDamping = true;
+        ambientLight.intensity = 0.65;
+        directionalLight.intensity = 1.05;
+        rimLight.intensity = 0.6;
+        group.scale.setScalar(1);
+        group.position.y = 0;
+      });
+
+      controls.addEventListener("change", () => {
+        if (showCoordinateHelper) {
+          setCoords({
+            cam: {
+              x: Number(camera.position.x.toFixed(2)),
+              y: Number(camera.position.y.toFixed(2)),
+              z: Number(camera.position.z.toFixed(2)),
+            },
+            target: {
+              x: Number(controls!.target.x.toFixed(2)),
+              y: Number(controls!.target.y.toFixed(2)),
+              z: Number(controls!.target.z.toFixed(2)),
+            },
+          });
+        }
+      });
     }
-    renderer.domElement.style.touchAction = canUseControls ? "none" : "pan-y";
+    renderer.domElement.style.touchAction =
+      canUseControls && (enableRotate || enablePan || enableZoom) ? "none" : "pan-y";
 
     const syncCameraTarget = () => {
-      if (!initialTarget || controls?.enabled) return;
-      camera.lookAt(initialTarget.x, initialTarget.y, initialTarget.z);
+      if (!baseTarget || controls?.enabled) return;
+      camera.lookAt(baseTarget.x, baseTarget.y, baseTarget.z);
     };
     syncCameraTarget();
 
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 1.05);
+    const ambientLight = new THREE.AmbientLight(0xffffff, introZoom ? 0.08 : 0.65);
+    const directionalLight = new THREE.DirectionalLight(0xffffff, introZoom ? 0.15 : 1.05);
     directionalLight.position.set(2.2, 4.2, 2.1);
-    const rimLight = new THREE.PointLight(0x7dd3fc, 0.6, 10);
+    const rimLight = new THREE.PointLight(0x7dd3fc, introZoom ? 0.15 : 0.6, 10);
     rimLight.position.set(-2, -0.6, 2.2);
     scene.add(ambientLight, directionalLight, rimLight);
 
@@ -252,6 +347,7 @@ export default function HeroThree({
     let lastRaycastAt = 0;
     let hovered = false;
     let isPointerDownOnModel = false;
+    let isModelActive = false;
     let mixer: THREE.AnimationMixer | null = null;
     let modelRoot: THREE.Object3D | null = null;
     let ballNode: THREE.Object3D | null = null;
@@ -265,10 +361,11 @@ export default function HeroThree({
     const waveUntil = 0;
     const lastClickAt = 0;
     let introStartAt = 0;
+    let introCompleted = false;
     let modelReady = false;
-    let revealOpacity = 0;
-    let revealArmed = false;
     renderer.domElement.style.opacity = "0";
+    renderer.domElement.style.transition = "opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1)";
+    renderer.domElement.style.pointerEvents = introZoom ? "none" : "auto";
 
     const lookTarget = new THREE.Vector2(0, 0);
     const lookCurrent = new THREE.Vector2(0, 0);
@@ -313,11 +410,22 @@ export default function HeroThree({
       }
     };
 
+    let isDisposed = false;
+    const ktx2Loader = new KTX2Loader()
+      .setTranscoderPath("/assets/basis/")
+      .detectSupport(renderer);
+
     const loader = new GLTFLoader();
+    loader.setMeshoptDecoder(MeshoptDecoder);
+    loader.setKTX2Loader(ktx2Loader);
+
     const markReady = () => {
       modelReady = true;
       introStartAt = performance.now();
       group.visible = true;
+      requestAnimationFrame(() => {
+        renderer.domElement.style.opacity = "1";
+      });
     };
 
     const resolveTargetByName = (
@@ -344,6 +452,48 @@ export default function HeroThree({
       return {};
     };
 
+    const resolveTarget = (
+      hit: THREE.Intersection | undefined,
+    ): { nav?: NavTarget; external?: ExternalTarget; ball?: boolean } => {
+      if (!hit) return {};
+
+      // 1. Tên mesh (hỗ trợ model gốc nếu còn lưu name)
+      const byName = resolveTargetByName(hit.object);
+      if (byName.nav || byName.external || byName.ball) {
+        return byName;
+      }
+
+      // 2. Định vị toạ độ không gian 3D trong hệ toạ độ local của modelRoot
+      // Cực kỳ quan trọng với các model đã được nén/gộp mesh (gltfpack) bị mất tên mesh riêng lẻ
+      if (modelRoot && hit.point) {
+        const local = modelRoot.worldToLocal(hit.point.clone());
+        const { x, y, z } = local;
+
+        // Các bảng điều hướng trên tường bên phải (About, Skills, Works, Contact)
+        // Tâm x ≈ 7.02, z ≈ 3.52, xếp chồng theo trục Y
+        if (x >= 4.8 && x <= 9.2 && z >= 2.4 && z <= 4.6) {
+          if (y >= 5.95 && y <= 7.50) return { nav: "about" };
+          if (y >= 4.60 && y < 5.95) return { nav: "skills" };
+          if (y >= 3.25 && y < 4.60) return { nav: "works" };
+          if (y >= 1.65 && y < 3.25) return { nav: "contact" };
+        }
+
+        // Các icon liên lạc mạng xã hội trên kệ tường bên trái (Mail, GitHub, LinkedIn)
+        // Tâm x ≈ -3.1, y ≈ 4.88, xếp dọc theo trục Z
+        if (x >= -3.9 && x <= -2.2 && y >= 3.8 && y <= 5.8) {
+          if (z >= -1.80 && z <= -0.65) return { external: "mail" };
+          if (z >= -3.00 && z < -1.80) return { external: "github" };
+          if (z >= -4.40 && z < -3.00) return { external: "linkedin" };
+        }
+
+        // Quả bóng nảy
+        const ballDist = Math.hypot(x - 2.538, y - 1.368, z - (-2.949));
+        if (ballDist < 1.2) return { ball: true };
+      }
+
+      return {};
+    };
+
     const scrollToSection = (target: NavTarget) => {
       const sectionId = NAV_SECTION_IDS[target].find((id) => document.getElementById(id));
       if (!sectionId) return;
@@ -351,109 +501,151 @@ export default function HeroThree({
       element?.scrollIntoView({ behavior: "smooth", block: "start" });
     };
 
-    loader.load(
-      modelUrl,
-      (gltf) => {
-        modelRoot = gltf.scene;
-        modelRoot.traverse((child) => {
-          if (!(child as THREE.Mesh).isMesh) return;
-          const mesh = child as THREE.Mesh;
-          mesh.castShadow = false;
-          mesh.receiveShadow = false;
-        });
-        group.add(modelRoot);
-        fitModelToView(modelRoot);
-        modelRoot.rotation.y = initialModelRotationY ?? Math.PI * -0.35;
-
-        const findByName = (patterns: RegExp[]) => {
-          let found: THREE.Object3D | null = null;
-          modelRoot?.traverse((child) => {
-            if (found || !child.name) return;
-            if (patterns.some((pattern) => pattern.test(child.name))) found = child;
+    MeshoptDecoder.ready.then(() => {
+      if (isDisposed) return;
+      loader.load(
+        modelUrl,
+        (gltf) => {
+          if (isDisposed) return;
+          modelRoot = gltf.scene;
+          modelRoot.traverse((child) => {
+            if (!(child as THREE.Mesh).isMesh) return;
+            const mesh = child as THREE.Mesh;
+            mesh.castShadow = false;
+            mesh.receiveShadow = false;
           });
-          return found;
-        };
+          group.add(modelRoot);
+          fitModelToView(modelRoot);
+          modelRoot.rotation.y = initialModelRotationY ?? Math.PI * -0.35;
 
-        rig = {
-          head: findByName([/head/i, /neck/i]),
-          torso: findByName([/spine/i, /chest/i, /torso/i]),
-          leftArm: findByName([/leftarm/i, /upperarm_l/i, /arm_l/i]),
-          rightArm: findByName([/rightarm/i, /upperarm_r/i, /arm_r/i]),
-        };
+          const findByName = (patterns: RegExp[]) => {
+            let found: THREE.Object3D | null = null;
+            modelRoot?.traverse((child) => {
+              if (found || !child.name) return;
+              if (patterns.some((pattern) => pattern.test(child.name))) found = child;
+            });
+            return found;
+          };
 
-        modelRoot.traverse((child) => {
-          if (ballNode || !child.name) return;
-          if (BALL_MESH_PATTERNS.some((pattern) => pattern.test(child.name))) {
-            ballNode = child;
+          rig = {
+            head: findByName([/head/i, /neck/i]),
+            torso: findByName([/spine/i, /chest/i, /torso/i]),
+            leftArm: findByName([/leftarm/i, /upperarm_l/i, /arm_l/i]),
+            rightArm: findByName([/rightarm/i, /upperarm_r/i, /arm_r/i]),
+          };
+
+          modelRoot.traverse((child) => {
+            if (ballNode || !child.name) return;
+            if (BALL_MESH_PATTERNS.some((pattern) => pattern.test(child.name))) {
+              ballNode = child;
+            }
+          });
+          if (ballNode) ballBaseY = ballNode.position.y;
+
+          if (gltf.animations.length) {
+            mixer = new THREE.AnimationMixer(modelRoot);
+            registerAction("idle", gltf.animations[0]);
+            playAction("idle");
+
+            if (walkUrl) {
+              loader.load(
+                walkUrl,
+                (animGltf) => registerAction("walk", animGltf.animations[0]),
+                undefined,
+                () => {},
+              );
+            }
+            if (runUrl) {
+              loader.load(
+                runUrl,
+                (animGltf) => registerAction("run", animGltf.animations[0]),
+                undefined,
+                () => {},
+              );
+            }
           }
-        });
-        if (ballNode) ballBaseY = ballNode.position.y;
 
-        if (gltf.animations.length) {
-          mixer = new THREE.AnimationMixer(modelRoot);
-          registerAction("idle", gltf.animations[0]);
-          playAction("idle");
-
-          if (walkUrl) {
-            loader.load(
-              walkUrl,
-              (animGltf) => registerAction("walk", animGltf.animations[0]),
-              undefined,
-              () => {},
-            );
-          }
-          if (runUrl) {
-            loader.load(
-              runUrl,
-              (animGltf) => registerAction("run", animGltf.animations[0]),
-              undefined,
-              () => {},
-            );
-          }
-        }
-
-        markReady();
-      },
-      undefined,
-      () => {
-        const fallback = createFallbackCharacter(baseColor, highlightColor);
-        modelRoot = fallback.group;
-        rig = fallback.rig;
-        group.add(modelRoot);
-        fitModelToView(modelRoot);
-        modelRoot.rotation.y = initialModelRotationY ?? Math.PI * -0.35;
-        markReady();
-      },
-    );
+          markReady();
+        },
+        undefined,
+        (error) => {
+          console.error("Lỗi khi load 3D model:", error);
+          if (isDisposed) return;
+          const fallback = createFallbackCharacter(baseColor, highlightColor);
+          modelRoot = fallback.group;
+          rig = fallback.rig;
+          group.add(modelRoot);
+          fitModelToView(modelRoot);
+          modelRoot.rotation.y = initialModelRotationY ?? Math.PI * -0.35;
+          markReady();
+        },
+      );
+    });
 
     const handlePointerMove = (event: PointerEvent) => {
+      if (introZoom && !introCompleted) return;
       if (!enableHover) return;
       const rect = renderer.domElement.getBoundingClientRect();
       pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
       pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-      lookTarget.set(pointer.x, pointer.y);
       pointerDirty = true;
+      if (isModelActive && hovered) {
+        lookTarget.set(pointer.x, pointer.y);
+      } else {
+        lookTarget.set(0, 0);
+      }
     };
 
     const handlePointerLeave = () => {
       if (!enableHover) return;
       hovered = false;
+      isModelActive = false;
       lookTarget.set(0, 0);
       isPointerDownOnModel = false;
+      if (controls) controls.enabled = false;
       renderer.domElement.style.cursor = "default";
     };
 
     let pointerDownPos = { x: 0, y: 0 };
 
     const handlePointerDown = (event: PointerEvent) => {
+      if (introZoom && !introCompleted) return;
       pointerDownPos = { x: event.clientX, y: event.clientY };
       if (!modelRoot) return;
-      isPointerDownOnModel = true;
+
+      const rect = renderer.domElement.getBoundingClientRect();
+      pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+      raycaster.setFromCamera(pointer, camera);
+      const hits = raycaster.intersectObject(modelRoot, true);
+
+      if (hits.length > 0) {
+        isPointerDownOnModel = true;
+        isModelActive = true;
+        hovered = true;
+        lookTarget.set(pointer.x, pointer.y);
+        const hitTarget = resolveTarget(hits[0]);
+        if (controls && enableRotate && !hitTarget.nav && !hitTarget.external && !hitTarget.ball) {
+          controls.enabled = true;
+        } else if (controls) {
+          controls.enabled = false;
+        }
+      } else {
+        isPointerDownOnModel = false;
+        isModelActive = false;
+        lookTarget.set(0, 0);
+        if (controls) {
+          controls.enabled = false;
+        }
+      }
     };
 
     const handlePointerUp = () => {
       isPointerDownOnModel = false;
       if (!hovered) {
+        isModelActive = false;
+        lookTarget.set(0, 0);
+        if (controls) controls.enabled = false;
         renderer.domElement.style.cursor = "default";
       } else {
         renderer.domElement.style.cursor = "grab";
@@ -461,10 +653,11 @@ export default function HeroThree({
     };
 
     const handleClick = (event: MouseEvent) => {
+      if (introZoom && !introCompleted) return;
       if (!modelRoot) return;
-      // If user moved finger/cursor more than 12px, it was a scroll/drag, not a click
+      // If user moved finger/cursor more than 16px, it was a scroll/drag, not a click
       const moveDist = Math.hypot(event.clientX - pointerDownPos.x, event.clientY - pointerDownPos.y);
-      if (moveDist > 12) return;
+      if (moveDist > 16) return;
 
       const rect = renderer.domElement.getBoundingClientRect();
       pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
@@ -472,7 +665,18 @@ export default function HeroThree({
 
       raycaster.setFromCamera(pointer, camera);
       const hits = raycaster.intersectObject(modelRoot, true);
-      const hitTarget = hits.length ? resolveTargetByName(hits[0].object) : {};
+      if (hits.length > 0) {
+        isModelActive = true;
+        hovered = true;
+        lookTarget.set(pointer.x, pointer.y);
+      } else {
+        isModelActive = false;
+        lookTarget.set(0, 0);
+        if (controls) controls.enabled = false;
+        return;
+      }
+
+      const hitTarget = resolveTarget(hits[0]);
 
       if (hitTarget.ball) {
         ballBounceStartAt = performance.now();
@@ -523,7 +727,9 @@ export default function HeroThree({
       const delta = clock.getDelta();
       if (mixer) mixer.update(delta);
 
-      if (enableHover && pointerDirty && modelRoot) {
+      if (introZoom && !introCompleted) {
+        renderer.domElement.style.cursor = "default";
+      } else if (enableHover && pointerDirty && modelRoot) {
         const nowMs = performance.now();
         const minRaycastGap = lowPowerDevice ? 66 : 33;
         if (nowMs - lastRaycastAt >= minRaycastGap) {
@@ -532,7 +738,15 @@ export default function HeroThree({
           raycaster.setFromCamera(pointer, camera);
           const hits = raycaster.intersectObject(modelRoot, true);
           const isHover = hits.length > 0;
-          const hitTarget = hits.length ? resolveTargetByName(hits[0].object) : {};
+          hovered = isHover;
+          if (!isHover) {
+            isModelActive = false;
+            lookTarget.set(0, 0);
+            if (controls) controls.enabled = false;
+          } else if (isModelActive) {
+            lookTarget.set(pointer.x, pointer.y);
+          }
+          const hitTarget = hits.length ? resolveTarget(hits[0]) : {};
           renderer.domElement.style.cursor = hitTarget.nav || hitTarget.external || hitTarget.ball
             ? "pointer"
             : isHover
@@ -540,7 +754,6 @@ export default function HeroThree({
                 ? "grabbing"
                 : "grab"
               : "default";
-          hovered = isHover;
         }
       }
 
@@ -548,34 +761,74 @@ export default function HeroThree({
       lookCurrent.y += (lookTarget.y - lookCurrent.y) * 0.08;
 
       const now = performance.now();
-      if (modelReady && !revealArmed) revealArmed = true;
-      if (revealArmed && revealOpacity < 1) {
-        revealOpacity = Math.min(1, revealOpacity + delta * 3.6);
-        renderer.domElement.style.opacity = revealOpacity.toFixed(3);
-      }
+      const introDuration = 2.8;
+      const isIntroActive =
+        introZoom &&
+        modelReady &&
+        !introCompleted &&
+        (now - introStartAt) / 1000 <= introDuration;
 
-      if (introZoom && modelReady) {
+      if (isIntroActive) {
         const elapsed = (now - introStartAt) / 1000;
-        const duration = 4.8;
-        if (elapsed <= duration) {
-          const phase = elapsed / duration;
-          const ease = (value: number) => value * value * (3 - 2 * value);
-          const lerp = (from: number, to: number, value: number) =>
-            from + (to - from) * value;
-          if (phase <= 0.52) {
-            const t = ease(phase / 0.52);
-            camera.position.z = lerp(introStartZ, 1.9, t);
-          } else {
-            const t = ease((phase - 0.52) / 0.48);
-            camera.position.z = lerp(1.9, dynamicBaseZ, t);
-          }
-          syncCameraTarget();
+        const t = Math.min(1, Math.max(0, elapsed / introDuration));
+
+        // 1. Quá trình xuất hiện từ từ như cũ bằng đường cong Ease-in-out Cubic mượt mà
+        const ease = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
+        let camX = startCamPos.x + (baseCameraPosition.x - startCamPos.x) * ease;
+        let camY = startCamPos.y + (baseCameraPosition.y - startCamPos.y) * ease;
+        let camZ = startCamPos.z + (baseCameraPosition.z - startCamPos.z) * ease;
+
+        // 2. Bước cuối (t: 0.55 -> 1.0): Hiệu ứng rướn nhẹ ra phía màn hình bằng đa thức siêu mượt (zero jerk)
+        if (t >= 0.55) {
+          const p = (t - 0.55) / 0.45;
+          // Hàm đa thức quintic: đạo hàm cấp 1 & 2 tại 0 và 1 đều = 0, loại bỏ hoàn toàn độ giật/khựng
+          const bell = 64 * p * p * p * (1 - p) * (1 - p) * (1 - p);
+          const popCamOffset = 0.08 * bell; // Máy quay rướn nhẹ 8% rồi êm ái thu về vị trí
+
+          const dirX = camX - baseTarget.x;
+          const dirY = camY - baseTarget.y;
+          const dirZ = camZ - baseTarget.z;
+          camX -= dirX * popCamOffset;
+          camY -= dirY * popCamOffset;
+          camZ -= dirZ * popCamOffset;
         }
+
+        camera.position.set(camX, camY, camZ);
+        camera.lookAt(baseTarget.x, baseTarget.y, baseTarget.z);
+        if (controls) {
+          controls.target.set(baseTarget.x, baseTarget.y, baseTarget.z);
+        }
+
+        ambientLight.intensity = 0.2 + (0.65 - 0.2) * ease;
+        directionalLight.intensity = 0.3 + (1.05 - 0.3) * ease;
+        rimLight.intensity = 0.2 + (0.6 - 0.2) * ease;
+
+        if (t >= 0.95 && !hasBouncedIntro) {
+          hasBouncedIntro = true;
+          ballBounceStartAt = performance.now();
+          ballBounceUntil = ballBounceStartAt + 1200;
+        }
+      } else if (introZoom && modelReady && !introCompleted) {
+        introCompleted = true;
+        renderer.domElement.style.pointerEvents = "auto";
+        group.scale.setScalar(1);
+        camera.position.set(baseCameraPosition.x, baseCameraPosition.y, baseCameraPosition.z);
+        if (controls) {
+          controls.enabled = false;
+          controls.target.set(baseTarget.x, baseTarget.y, baseTarget.z);
+          controls.enableDamping = true;
+          controls.update();
+        }
+        ambientLight.intensity = 0.65;
+        directionalLight.intensity = 1.05;
+        rimLight.intensity = 0.6;
       }
 
       const waveActive = now < waveUntil;
       const wavePhase = waveActive ? (now - lastClickAt) / 180 : 0;
 
+      const baseModelRotY = initialModelRotationY ?? Math.PI * -0.35;
       if (rig.head || rig.torso) {
         if (rig.head) {
           rig.head.rotation.y = lookCurrent.x * lookIntensity;
@@ -586,8 +839,8 @@ export default function HeroThree({
           rig.torso.rotation.x = lookCurrent.y * torsoIntensity * 0.6;
         }
       } else if (modelRoot) {
-        modelRoot.rotation.y = lookCurrent.x * 0.2;
-        modelRoot.rotation.x = lookCurrent.y * 0.12;
+        modelRoot.rotation.y = baseModelRotY + lookCurrent.x * 0.16;
+        modelRoot.rotation.x = lookCurrent.y * 0.1;
       }
 
       if (rig.rightArm && waveActive) {
@@ -605,11 +858,11 @@ export default function HeroThree({
         }
       }
 
-      if (enableFloat && !prefersReducedMotion && !lowPowerDevice) {
+      if (enableFloat && !prefersReducedMotion && !lowPowerDevice && !hasUserInteracted) {
         group.rotation.y = Math.sin(performance.now() * 0.0004) * 0.08;
         group.rotation.x = Math.sin(performance.now() * 0.0003) * 0.04;
       }
-      if (controls?.enabled) controls.update();
+      if (controls?.enabled && !isIntroActive) controls.update();
       renderer.render(scene, camera);
       rafId = window.requestAnimationFrame(animate);
     };
@@ -622,22 +875,28 @@ export default function HeroThree({
         if (!width || !height) return;
         
         // Cập nhật khoảng cách camera dựa trên chiều rộng màn hình (Responsive 3D)
-        const baseZ = baseCameraPosition.z;
+        let scaleFactor = 1;
         if (width < 640) {
-          dynamicBaseZ = baseZ * 1.7; // Mobile: xa hơn để thấy đc toàn bộ
+          scaleFactor = 1.45; // Mobile: xa hơn để thấy đc toàn bộ
         } else if (width < 1024) {
-          dynamicBaseZ = baseZ * 1.35; // Tablet
-        } else if (width > 1536) {
-          dynamicBaseZ = baseZ * 0.9; // Large monitors 20-27in: gần hơn một chút
+          scaleFactor = 1.25; // Tablet
         } else {
-          dynamicBaseZ = baseZ; // Laptop / Desktop chuẩn
+          scaleFactor = 1; // Desktop chuẩn (kể cả màn hình 1920px)
         }
 
-        // Nếu animation intro đã xong, cập nhật ngay z của camera
+        // Nếu animation intro đã xong và chưa can thiệp, cập nhật vị trí camera
         const now = performance.now();
-        if (!introZoom || !modelReady || (now - introStartAt) / 1000 > 4.8) {
-          camera.position.z = dynamicBaseZ;
-          syncCameraTarget();
+        if (!hasUserInteracted && (!introZoom || !modelReady || (now - introStartAt) / 1000 > 2.8)) {
+          camera.position.set(
+            baseCameraPosition.x * scaleFactor,
+            baseCameraPosition.y * scaleFactor,
+            baseCameraPosition.z * scaleFactor,
+          );
+          if (controls) {
+            controls.update();
+          } else {
+            syncCameraTarget();
+          }
         }
 
         camera.aspect = width / height;
@@ -659,6 +918,8 @@ export default function HeroThree({
         renderer.domElement.removeEventListener("click", handleClick);
         window.removeEventListener("pointerup", handlePointerUp);
       }
+      isDisposed = true;
+      ktx2Loader.dispose();
       window.cancelAnimationFrame(rafId);
       controls?.dispose();
 
@@ -676,7 +937,72 @@ export default function HeroThree({
         container.removeChild(renderer.domElement);
       }
     };
-  }, [enableHover, enableInteraction, modelUrl]);
+  }, [enableHover, enableInteraction, modelUrl, enableControls, enablePan, enableZoom, showCoordinateHelper]);
 
-  return <div ref={containerRef} className={className ?? "h-full w-full"} />;
+  const handleReset = () => {
+    if (!controlsRef.current || !cameraRef.current) return;
+    cameraRef.current.position.set(defaultCam.x, defaultCam.y, defaultCam.z);
+    controlsRef.current.target.set(defaultTarget.x, defaultTarget.y, defaultTarget.z);
+    controlsRef.current.update();
+    setCoords({ cam: defaultCam, target: defaultTarget });
+  };
+
+  const handleCopy = () => {
+    const snippet = `initialCameraPosition={{ x: ${coords.cam.x}, y: ${coords.cam.y}, z: ${coords.cam.z} }}\ninitialTarget={{ x: ${coords.target.x}, y: ${coords.target.y}, z: ${coords.target.z} }}`;
+    navigator.clipboard.writeText(snippet);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div className="relative h-full w-full">
+      <div ref={containerRef} className={className ?? "h-full w-full"} />
+      {showCoordinateHelper && (
+        <div className="pointer-events-auto fixed bottom-6 left-6 z-[999] flex flex-col gap-2.5 rounded-2xl border border-cyan-400/30 bg-slate-950/90 p-4 text-xs text-white shadow-2xl backdrop-blur-xl max-w-sm sm:max-w-md">
+          <div className="flex items-center justify-between gap-3">
+            <span className="font-semibold text-cyan-300 flex items-center gap-1.5">
+              <span>🎮</span> Căn chỉnh 3D (360° View)
+            </span>
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={handleCopy}
+                className="cursor-pointer rounded-lg bg-cyan-400/20 px-2.5 py-1 text-[11px] font-semibold text-cyan-200 hover:bg-cyan-400/30 border border-cyan-400/30 transition active:scale-95"
+              >
+                {copied ? "✓ Đã copy!" : "Copy Tọa độ"}
+              </button>
+              <button
+                type="button"
+                onClick={handleReset}
+                className="cursor-pointer rounded-lg bg-white/10 px-2.5 py-1 text-[11px] font-medium text-white/80 hover:bg-white/20 border border-white/10 transition active:scale-95"
+              >
+                Reset
+              </button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2 font-mono text-[11px]">
+            <div className="rounded-lg bg-white/[0.04] p-2 border border-white/5">
+              <div className="text-cyan-400 font-semibold mb-0.5">Camera (Vị trí & Zoom)</div>
+              <div>x: {coords.cam.x}</div>
+              <div>y: {coords.cam.y}</div>
+              <div>z: {coords.cam.z}</div>
+            </div>
+            <div className="rounded-lg bg-white/[0.04] p-2 border border-white/5">
+              <div className="text-pink-400 font-semibold mb-0.5">Target (Tâm nhìn)</div>
+              <div>x: {coords.target.x}</div>
+              <div>y: {coords.target.y}</div>
+              <div>z: {coords.target.z}</div>
+            </div>
+          </div>
+
+          <div className="text-[11px] text-white/60 space-y-0.5 pt-1 border-t border-white/10">
+            <div>• <b>Chuột trái:</b> Xoay tự do 360° quanh phòng</div>
+            <div>• <b>Chuột phải / Shift + Kéo:</b> Di chuyển vị trí (Pan)</div>
+            <div>• <b>Cuộn chuột / Pinch cảm ứng:</b> Phóng to / Thu nhỏ (Zoom)</div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }

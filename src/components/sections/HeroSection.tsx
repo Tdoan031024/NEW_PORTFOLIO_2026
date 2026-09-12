@@ -107,7 +107,7 @@ const TECH_NODES: TechNode[] = [
   },
 ];
 
-const guideVersion = "portfolio-guides-2026-05-22-6";
+const guideVersion = "portfolio-guides-2026-05-22-v3";
 const guideAnimationDuration = 6800;
 const guideFadeDuration = 700;
 
@@ -120,6 +120,23 @@ export default function HeroSection() {
   const [text, setText] = useState("");
   const [modelGuideMounted, setModelGuideMounted] = useState(false);
   const [modelGuideVisible, setModelGuideVisible] = useState(false);
+  const [isEditingGuides, setIsEditingGuides] = useState(false);
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const custom = e as CustomEvent<{ editing: boolean }>;
+      if (custom.detail !== undefined) {
+        setIsEditingGuides(custom.detail.editing);
+        if (custom.detail.editing) {
+          setModelGuideMounted(true);
+          setModelGuideVisible(true);
+        }
+      }
+    };
+    window.addEventListener("guide-edit-mode-toggle", handler);
+    return () => window.removeEventListener("guide-edit-mode-toggle", handler);
+  }, []);
+
   const [isDeleting, setIsDeleting] = useState(false);
   const [loopNum, setLoopNum] = useState(0);
   const [typingSpeed, setTypingSpeed] = useState(100);
@@ -130,6 +147,12 @@ export default function HeroSection() {
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
+    if (isEditingGuides) {
+      setModelGuideMounted(true);
+      setModelGuideVisible(true);
+      return;
+    }
+
     const hero = document.getElementById("hero");
     if (!hero) return;
 
@@ -211,21 +234,6 @@ export default function HeroSection() {
       id="hero"
       className="relative z-[260] -mt-24 overflow-visible bg-transparent px-6 pb-28 pt-0 md:-mt-32 md:px-16"
     >
-      {modelGuideMounted && (
-        <GuideCallout
-          label="Use these panels to navigate"
-          className={`absolute inset-0 z-[620] hidden h-full w-full transition-opacity duration-700 lg:block ${
-            modelGuideVisible ? "opacity-100" : "pointer-events-none opacity-0"
-          }`}
-          viewBox="0 0 1920 720"
-          initialOffset={{ x: 3, y: 47 }}
-          start={{ x: 1100, y: 14 }}
-          end={{ x: 1276, y: 171 }}
-          labelBox={{ x: 993, y: -38, width: 310, height: 56 }}
-          storageKey="guide-model-about"
-          storageVersion={guideVersion}
-        />
-      )}
       <div className="relative z-0 mx-auto flex max-w-7xl flex-col gap-12 lg:flex-row lg:items-center">
         <div className="min-w-0 flex-1 lg:flex-[1.18]">
           <motion.div
@@ -294,6 +302,23 @@ export default function HeroSection() {
             className="relative h-[340px] w-[min(90vw,380px)] sm:h-[400px] sm:w-[400px] md:h-[460px] md:w-[460px]"
             style={{ perspective: "1000px" }}
           >
+            {(modelGuideMounted || isEditingGuides) && (
+              <GuideCallout
+                label="About Me & Tech Stack"
+                className={`pointer-events-none absolute -left-20 -top-20 z-[620] block h-[260px] w-[400px] transition-opacity duration-700 ${
+                  isEditingGuides || modelGuideVisible ? "opacity-100" : "opacity-0"
+                }`}
+                viewBox="0 0 400 260"
+                initialOffset={{ x: 0, y: 0 }}
+                start={{ x: 190, y: 55 }}
+                end={{ x: 265, y: 145 }}
+                labelBox={{ x: 15, y: 25, width: 220, height: 46 }}
+                storageKey="guide-model-about"
+                storageVersion={guideVersion}
+                editable={isEditingGuides}
+                showDebug={isEditingGuides}
+              />
+            )}
             <motion.div
               animate={{ rotateX: canTilt ? tilt.x * 0.25 : 0, rotateY: canTilt ? tilt.y * 0.25 : 0 }}
               transition={{ type: "spring", stiffness: 70, damping: 24, mass: 1.2 }}

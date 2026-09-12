@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 
 type Experience = {
-  logo: "iec" | "huitMedia" | "sof" | "google" | "publication" | "education";
+  logo: "iec" | "huitMedia" | "sof" | "cluega" | "google" | "publication" | "education";
   title: string;
   company: string;
   shortName?: string;
@@ -17,13 +17,25 @@ type Experience = {
 
 const experiences: Experience[] = [
   {
+    logo: "cluega",
+    title: "Full-stack Developer",
+    company: "Cluega",
+    shortName: "CLUEGA",
+    website: "https://cluega.com",
+    websiteLabel: "cluega.com",
+    date: "Sept 2026 - Present",
+    description:
+      "Contributing to the development of Cluega's Full-Lifecycle AI Work Assistant and marketing automation ecosystem. Building scalable web interfaces, autonomous workflow pipelines, LLM tool integrations, and cross-platform campaign synchronizations.",
+    tags: ["Full-Lifecycle AI", "Workflow Automation", "LLM Integration", "Full-stack Development", "CDP & Analytics"],
+  },
+  {
     logo: "sof",
     title: "Full-stack Developer / Software Developer",
     company: "Cong ty TNHH SOF",
     shortName: "SOF",
     website: "https://sof.com.vn",
     websiteLabel: "sof.com.vn",
-    date: "Jan 2026 - Now",
+    date: "Jan 2026 - Aug 2026",
     description:
       "Contributing to enterprise software systems such as ERP, HRM, POS, and business management platforms, focusing on feature development, backend workflows, database operations, and user interface improvements.",
     tags: ["Enterprise Software", "ERP", "HRM", "POS", "Digital Transformation"],
@@ -62,6 +74,20 @@ function SkillTag({ children }: { children: string }) {
 }
 
 function LogoMarker({ type }: { type: Experience["logo"] }) {
+  if (type === "cluega") {
+    return (
+      <div className="flex h-full w-full items-center justify-center rounded-[10px] bg-white p-1">
+        <Image
+          src="/assets/logos/cluega.png"
+          alt="Cluega logo"
+          width={44}
+          height={32}
+          className="max-h-full max-w-full object-contain"
+        />
+      </div>
+    );
+  }
+
   if (type === "iec") {
     return (
       <div className="flex h-full w-full items-center justify-center rounded-[10px] bg-white p-1">

@@ -83,7 +83,7 @@ const dictionary: Record<Language, Dictionary> = {
     navDocs: "Tài liệu",
     downloadCv: "Tải CV",
     heroKicker: "Kỹ sư Fullstack + Sáng tạo",
-    heroTitle: "Xin chào! Tôi là Tuyên Đoán",
+    heroTitle: "Xin chào! Tôi là Tuyen Doan",
     heroDesc:
       "Tôi là một lập trình viên Fullstack, tập trung xây dựng các ứng dụng web hiện đại, tối ưu hiệu năng và mang lại trải nghiệm người dùng tốt. Tôi làm việc cả frontend lẫn backend, từ thiết kế giao diện đến xây dựng hệ thống và cơ sở dữ liệu, đảm bảo tính ổn định và khả năng mở rộng. Bên cạnh đó, tôi có kinh nghiệm với DevOps, ORM và các công cụ hỗ trợ AI để tối ưu quy trình phát triển. Tôi luôn hướng đến việc tạo ra những sản phẩm chất lượng và không ngừng học hỏi công nghệ mới.",
     heroCtaProjects: "Xem dự án",
@@ -94,13 +94,13 @@ const dictionary: Record<Language, Dictionary> = {
       "Tôi tập trung vào stack hiện đại, lưu ý tối ưu hiệu năng và tính tương tác của giao diện.",
     projectsKicker: "Dự án",
     projectsTitle: "Dự án nổi bật",
-    projectsCount: "03 case study",
+    projectsCount: "08 case study",
     aboutKicker: "Giới thiệu",
     aboutTitle: "Tôi tạo trải nghiệm có chiều sâu.",
     aboutDesc:
-      "8+ năm làm việc với sản phẩm số, tôi kết hợp thiết kế giao diện, kỹ thuật 3D và backend mạnh để đưa ý tưởng thành hệ thống sẵn sàng.",
+      "Nhiều năm làm việc với sản phẩm số, tôi kết hợp thiết kế giao diện, kỹ thuật 3D và backend mạnh mẽ để đưa ý tưởng thành hệ thống sẵn sàng vận hành.",
     aboutCard1: "Kiến trúc hệ thống mở rộng",
-    aboutCard2: "UX/UI có cảm xúc",
+    aboutCard2: "UX/UI có chiều sâu",
     aboutCard3: "3D + motion tinh tế",
     aboutCard4: "Backend ổn định",
     aiKicker: "AI Studio",
@@ -125,7 +125,7 @@ const dictionary: Record<Language, Dictionary> = {
     contactTitle: "Hợp tác cùng tôi",
     contactDesc:
       "Gửi thông tin dự án, tôi sẽ phản hồi trong 24 giờ. Form này kết nối trực tiếp với NestJS + MySQL.",
-    contactLocation: "Đà Nẵng, Việt Nam",
+    contactLocation: "TP. Hồ Chí Minh, Việt Nam",
     contactOpen: "Mở hợp tác toàn cầu",
     formName: "Tên của bạn",
     formEmail: "Email",
@@ -143,7 +143,7 @@ const dictionary: Record<Language, Dictionary> = {
     liveChatToggleClose: "Thu nhỏ",
     modalOpenDemo: "Mở live demo",
     modalClose: "Đóng lại",
-    footerRights: "© 2026 Doan. All rights reserved.",
+    footerRights: "© 2026 Tuyen Doan. All rights reserved.",
   },
   en: {
     navHero: "Hero",
@@ -166,11 +166,11 @@ const dictionary: Record<Language, Dictionary> = {
       "I focus on modern stacks with performance and interaction quality at the core.",
     projectsKicker: "Projects",
     projectsTitle: "Featured work",
-    projectsCount: "03 case studies",
+    projectsCount: "08 case studies",
     aboutKicker: "About", 
     aboutTitle: "I build depth-first experiences.",
     aboutDesc:
-      "8+ years in digital products, blending UI craft, 3D engineering, and robust backend systems.",
+      "Years in digital product engineering, blending UI craft, interactive 3D, and robust backend systems.",
     aboutCard1: "Scalable system architecture",
     aboutCard2: "Emotion-led UX/UI",
     aboutCard3: "Refined 3D + motion",
@@ -197,7 +197,7 @@ const dictionary: Record<Language, Dictionary> = {
     contactTitle: "Work with me",
     contactDesc:
       "Share your project details. I will respond within 24 hours. This form connects to NestJS + MySQL.",
-    contactLocation: "Da Nang, Viet Nam",
+    contactLocation: "Ho Chi Minh City, Vietnam",
     contactOpen: "Open for global work",
     formName: "Your name",
     formEmail: "Email",
@@ -214,7 +214,7 @@ const dictionary: Record<Language, Dictionary> = {
     liveChatToggleClose: "Minimize",
     modalOpenDemo: "Open live demo",
     modalClose: "Close",
-    footerRights: "© 2026 Doan. All rights reserved.",
+    footerRights: "© 2026 Tuyen Doan. All rights reserved.",
   },
 };
 

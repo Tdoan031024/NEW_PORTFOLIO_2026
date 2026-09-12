@@ -185,7 +185,11 @@ export default function GuideCallout({
     const drag = dragRef.current;
     if (!drag || drag.pointerId !== event.pointerId) return;
     dragRef.current = null;
-    rootRef.current?.releasePointerCapture(event.pointerId);
+    try {
+      rootRef.current?.releasePointerCapture(event.pointerId);
+    } catch {
+      // ignore
+    }
   };
 
   const controlOne = {
@@ -238,32 +242,12 @@ export default function GuideCallout({
             <stop offset="48%" stopColor={accent} />
             <stop offset="100%" stopColor={deepAccent} />
           </linearGradient>
-
-          <mask
-            id={maskId}
-            x="-2200"
-            y="-2200"
-            width="5200"
-            height="5200"
-            maskUnits="userSpaceOnUse"
-            maskContentUnits="userSpaceOnUse"
-          >
-            <path
-              d={path}
-              fill="none"
-              stroke="white"
-              strokeWidth="14"
-              strokeLinecap="round"
-              pathLength="100"
-              className="guide-reveal-mask"
-            />
-          </mask>
         </defs>
 
         <circle
           cx={startPoint.x}
           cy={startPoint.y}
-          r="5"
+          r="4.5"
           fill={accent}
           filter={`url(#${glowId})`}
           className="guide-start-dot"
@@ -272,8 +256,9 @@ export default function GuideCallout({
         <foreignObject
           x={labelPos.x}
           y={labelPos.y}
-          width={labelBox.width}
-          height={labelBox.height}
+          width={labelBox.width + 50}
+          height={labelBox.height + 25}
+          style={{ overflow: "visible" }}
           className={`guide-callout-label ${editable ? "cursor-move" : ""}`}
           onPointerDown={(event) => {
             if (!editable) return;
@@ -281,56 +266,75 @@ export default function GuideCallout({
             startDrag(event as unknown as PointerEvent<HTMLDivElement>, "label");
           }}
         >
-          <div className="inline-flex max-w-full rounded-full border border-cyan-100/45 bg-[#051327]/92 px-4 py-2 text-[12px] font-extrabold text-cyan-50 shadow-[0_0_36px_rgba(34,211,238,0.3)] backdrop-blur-md">
-            {label}
+          <div
+            className="inline-flex items-center whitespace-nowrap rounded-full border border-cyan-400/60 bg-gradient-to-r from-[#061833] via-[#0a2347] to-[#061833] px-4 py-2 text-[13px] font-extrabold tracking-wide shadow-[inset_0_1px_1px_rgba(255,255,255,0.3)]"
+            style={{
+              filter: "drop-shadow(0 0 10px rgba(34, 211, 238, 0.45)) drop-shadow(0 6px 18px rgba(0, 0, 0, 0.9))",
+            }}
+          >
+            {/* Pulsing Attention Beacon */}
+            <span className="relative mr-2.5 flex h-2.5 w-2.5 shrink-0">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-cyan-400 opacity-80" />
+              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-cyan-300 shadow-[0_0_10px_rgba(34,211,238,1)]" />
+            </span>
+            <span className="bg-gradient-to-r from-white via-cyan-50 to-cyan-200 bg-clip-text text-transparent drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">
+              {label}
+            </span>
           </div>
         </foreignObject>
 
-        <g mask={`url(#${maskId})`}>
-          <path
-            d={path}
-            fill="none"
-            stroke={`url(#${gradientId})`}
-            strokeWidth="6"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            pathLength="100"
-            filter={`url(#${glowId})`}
-            className="guide-callout-glow"
-          />
-          <path
-            d={path}
-            fill="none"
-            stroke={`url(#${gradientId})`}
-            strokeWidth="4"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            pathLength="100"
-            className="guide-callout-line"
-          />
-        </g>
+        {/* Base continuous curve */}
+        <path
+          d={path}
+          fill="none"
+          stroke="rgba(34, 211, 238, 0.3)"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+        />
 
+        {/* Outer Glow Path */}
+        <path
+          d={path}
+          fill="none"
+          stroke={`url(#${gradientId})`}
+          strokeWidth="5"
+          strokeLinecap="round"
+          strokeOpacity="0.45"
+          filter={`url(#${glowId})`}
+          className="guide-laser-glow"
+        />
+
+        {/* Flowing Laser Stream */}
+        <path
+          d={path}
+          fill="none"
+          stroke={`url(#${gradientId})`}
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          className="guide-laser-stream"
+        />
+
+        {/* Always-visible Cyber Arrowhead */}
         <g
           transform={`translate(${endPoint.x} ${endPoint.y}) rotate(${arrowAngle})`}
           filter={`url(#${glowId})`}
           className="guide-arrowhead"
         >
-          <g className="guide-arrowhead-reveal">
-            <path
-              d="M 0 0 L -24 -12 L -16 0 L -24 12 Z"
-              fill={`url(#${gradientId}-arrow)`}
-            />
-          </g>
+          <path
+            d="M 0 0 L -14 -6 L -9 0 L -14 6 Z"
+            fill={`url(#${gradientId}-arrow)`}
+          />
         </g>
 
+        {/* Target radar ping ring & core */}
         <circle
           cx={endPoint.x}
           cy={endPoint.y}
-          r="18"
+          r="14"
           fill="none"
           stroke={accent}
-          strokeWidth="3"
-          className="guide-callout-pulse"
+          strokeWidth="2"
+          className="guide-target-ring"
         />
         <circle cx={endPoint.x} cy={endPoint.y} r="4" fill={accent} filter={`url(#${glowId})`} />
         {editable && (
@@ -368,105 +372,61 @@ export default function GuideCallout({
 
       <style>{`
         .guide-start-dot {
-          opacity: 0;
           transform-box: fill-box;
           transform-origin: center;
-          animation: guideStartDot 6.8s ease-in-out infinite;
         }
 
-        .guide-reveal-mask {
-          stroke-dasharray: 100;
-          stroke-dashoffset: 100;
-          animation: guideRevealMask 6.8s steps(20, end) infinite;
+        .guide-laser-stream {
+          stroke-dasharray: 8 10;
+          animation: guideLaserFlow 1.6s linear infinite;
         }
 
-        .guide-callout-glow {
-          stroke-dasharray: 3.2 4.8;
-          opacity: 0;
-          animation: guideSegmentGlow 6.8s ease-in-out infinite;
+        .guide-laser-glow {
+          stroke-dasharray: 8 10;
+          animation: guideLaserFlow 1.6s linear infinite;
         }
 
-        .guide-callout-line {
-          stroke-dasharray: 3.2 4.8;
-          stroke-dashoffset: 0;
-          opacity: 0;
-          animation: guideSegmentLine 6.8s linear infinite;
+        @keyframes guideLaserFlow {
+          from { stroke-dashoffset: 36; }
+          to { stroke-dashoffset: 0; }
         }
 
         .guide-arrowhead {
-          opacity: 0;
-          animation: guideArrowOpacity 6.8s ease-in-out infinite;
-        }
-
-        .guide-arrowhead-reveal {
+          opacity: 1;
           transform-box: fill-box;
-          transform-origin: right center;
-          transform: scaleX(0);
-          animation: guideArrowGrow 6.8s ease-in-out infinite;
+          transform-origin: 0 0;
+          animation: guideArrowPulse 2s ease-in-out infinite;
         }
 
-        .guide-callout-pulse {
+        @keyframes guideArrowPulse {
+          0%, 100% { filter: drop-shadow(0 0 3px rgba(34, 211, 238, 0.7)); }
+          50% { filter: drop-shadow(0 0 8px rgba(34, 211, 238, 1)); }
+        }
+
+        .guide-target-ring {
           transform-box: fill-box;
           transform-origin: center;
-          opacity: 0;
-          animation: guidePulse 6.8s ease-out infinite;
+          animation: guideTargetPing 2.2s cubic-bezier(0, 0, 0.2, 1) infinite;
+        }
+
+        @keyframes guideTargetPing {
+          0% { transform: scale(0.5); opacity: 0.95; }
+          75%, 100% { transform: scale(2.2); opacity: 0; }
         }
 
         .guide-callout-label {
-          opacity: 0;
-          animation: guideLabelReveal 6.8s ease-in-out infinite;
-        }
-
-        @keyframes guideStartDot {
-          0% { opacity: 0; transform: scale(.45); }
-          6% { opacity: 1; transform: scale(1.08); }
-          14% { opacity: .9; transform: scale(.82); }
-          90% { opacity: .75; transform: scale(.82); }
-          100% { opacity: 0; transform: scale(.45); }
-        }
-
-        @keyframes guideRevealMask {
-          0%, 18% { stroke-dashoffset: 100; }
-          68%, 90% { stroke-dashoffset: 0; }
-          100% { stroke-dashoffset: -14; }
-        }
-
-        @keyframes guideSegmentGlow {
-          0%, 18% { opacity: 0; }
-          24%, 90% { opacity: .5; }
-          100% { opacity: 0; }
-        }
-
-        @keyframes guideSegmentLine {
-          0%, 18% { opacity: 0; stroke-dashoffset: 0; }
-          23% { opacity: 1; }
-          68%, 90% { opacity: 1; stroke-dashoffset: -6; }
-          100% { opacity: 0; stroke-dashoffset: -18; }
-        }
-
-        @keyframes guideArrowOpacity {
-          0%, 69% { opacity: 0; }
-          77%, 90% { opacity: 1; }
-          100% { opacity: 0; }
-        }
-
-        @keyframes guideArrowGrow {
-          0%, 69% { transform: scaleX(0); }
-          79%, 90% { transform: scaleX(1); }
-          100% { transform: scaleX(1); }
-        }
-
-        @keyframes guidePulse {
-          0%, 79% { opacity: 0; transform: scale(.55); }
-          85% { opacity: .95; transform: scale(.7); }
-          95% { opacity: .16; transform: scale(1.7); }
-          100% { opacity: 0; transform: scale(1.95); }
+          opacity: 1;
         }
 
         @keyframes guideLabelReveal {
-          0% { opacity: 0; transform: translateY(8px) scale(.98); }
-          7%, 90% { opacity: 1; transform: translateY(0) scale(1); }
-          100% { opacity: 0; transform: translateY(-4px) scale(.98); }
+          0% { opacity: 0; transform: translateY(8px) scale(.95); }
+          6% { opacity: 1; transform: translateY(0) scale(1.02); }
+          12% { transform: translateY(0) scale(1); }
+          35% { transform: translateY(-2.5px) scale(1.01); }
+          60% { transform: translateY(0) scale(1); }
+          80% { transform: translateY(-2px) scale(1.01); }
+          90% { opacity: 1; transform: translateY(0) scale(1); }
+          100% { opacity: 0; transform: translateY(-5px) scale(.96); }
         }
 
         @media (prefers-reduced-motion: reduce) {

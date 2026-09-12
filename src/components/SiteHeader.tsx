@@ -12,12 +12,10 @@ const quickLinks = [
   { label: "Skills", href: "#skills", icon: "code" },
   { label: "Works", href: "#experience", icon: "briefcase" },
   { label: "Contact", href: "#contact", icon: "send" },
-] as const;
-
-const guideVersion = "portfolio-guides-2026-05-22-6";
+];
+const guideVersion = "portfolio-guides-2026-05-22-v3";
 const guideAnimationDuration = 6800;
 const guideFadeDuration = 700;
-const guideEditMode = false;
 
 function SidebarIcon({ type }: { type: (typeof quickLinks)[number]["icon"] }) {
   if (type === "user") {
@@ -48,8 +46,8 @@ function SidebarIcon({ type }: { type: (typeof quickLinks)[number]["icon"] }) {
   }
   return (
     <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.8">
-      <path d="M3 20 21 3" />
-      <path d="M21 3 14 21l-3-7-7-3Z" />
+      <path d="m22 2-7 20-4-9-9-4Z" />
+      <path d="M22 2 11 13" />
     </svg>
   );
 }
@@ -62,6 +60,22 @@ export default function SiteHeader() {
   const [hasScrolled, setHasScrolled] = useState(false);
   const [sidebarGuideMounted, setSidebarGuideMounted] = useState(false);
   const [sidebarGuideVisible, setSidebarGuideVisible] = useState(false);
+  const [isEditingGuides, setIsEditingGuides] = useState(false);
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const custom = e as CustomEvent<{ editing: boolean }>;
+      if (custom.detail !== undefined) {
+        setIsEditingGuides(custom.detail.editing);
+        if (custom.detail.editing) {
+          setSidebarGuideMounted(true);
+          setSidebarGuideVisible(true);
+        }
+      }
+    };
+    window.addEventListener("guide-edit-mode-toggle", handler);
+    return () => window.removeEventListener("guide-edit-mode-toggle", handler);
+  }, []);
 
   useEffect(() => {
     setMounted(true);
@@ -70,7 +84,7 @@ export default function SiteHeader() {
   useEffect(() => {
     const timer = window.setTimeout(() => {
       setVisible(true);
-    }, 3200);
+    }, 1000);
 
     return () => window.clearTimeout(timer);
   }, []);
@@ -93,7 +107,7 @@ export default function SiteHeader() {
 
   useEffect(() => {
     if (!mounted || !visible) return;
-    if (guideEditMode) {
+    if (isEditingGuides) {
       setSidebarGuideMounted(true);
       setSidebarGuideVisible(true);
       return;
@@ -137,15 +151,26 @@ export default function SiteHeader() {
   return createPortal(
     <>
       <header
-        className={`fixed left-0 top-0 w-full !z-[100] border-b border-transparent bg-transparent transition-all duration-[1400ms] ease-out ${
+        className={`fixed left-0 top-0 w-full !z-[100] border-b border-transparent bg-transparent transition-all duration-1000 ease-out ${
           entered ? "translate-y-0 opacity-100" : "-translate-y-full opacity-0"
         }`}
       >
         <div className="flex w-full items-center px-4 py-3 sm:px-6 sm:py-4 md:px-10 md:pr-16 lg:px-12 lg:pr-20">
-          <span className="text-xs sm:text-sm font-semibold tracking-[0.25em] sm:tracking-[0.3em] text-white">DOAN</span>
+          <a
+            href="#hero"
+            aria-label="Tuyen Doan Portfolio Homepage"
+            className="group flex items-center transition-opacity hover:opacity-90"
+          >
+            <img
+              src="/assets/logo/signature-white.png"
+              alt="Tuyen Doan Signature Logo"
+              className="h-8 sm:h-9 md:h-10 w-auto object-contain transition-transform duration-300 group-hover:scale-105 drop-shadow-[0_0_12px_rgba(34,211,238,0.35)]"
+            />
+          </a>
           <div className="ml-auto flex items-center gap-2 sm:gap-3">
             <GoogleTranslate />
-            <ThemeToggle />
+            {/* Tạm thời ẩn nút chuyển theme, mặc định dùng dark mode */}
+            {/* <ThemeToggle /> */}
             <button className="rounded-full border border-cyan-200/55 bg-cyan-300/18 px-3 py-1.5 sm:px-4 sm:py-2 text-[11px] sm:text-xs font-semibold text-cyan-100 shadow-[0_0_22px_rgba(34,211,238,0.22)] transition hover:bg-cyan-300/28">
               {t("downloadCv")}
             </button>
@@ -200,19 +225,21 @@ export default function SiteHeader() {
         ))}
       </nav>
 
-      {sidebarGuideMounted && (
+      {(sidebarGuideMounted || isEditingGuides) && (
         <GuideCallout
           label="Use sidebar icons for quick jump"
-          className={`fixed right-[72px] top-1/2 !z-[260] hidden h-[260px] w-[430px] -translate-y-1/2 transition-opacity duration-700 md:block ${
-            sidebarGuideVisible ? "opacity-100" : "pointer-events-none opacity-0"
+          className={`fixed right-[68px] top-1/2 !z-[350] hidden h-[180px] w-[360px] -translate-y-1/2 transition-opacity duration-700 md:block ${
+            isEditingGuides || sidebarGuideVisible ? "opacity-100" : "pointer-events-none opacity-0"
           }`}
-          viewBox="0 0 430 260"
-          initialOffset={{ x: 22, y: -84 }}
-          start={{ x: 234, y: 111 }}
-          end={{ x: 398, y: 208 }}
-          labelBox={{ x: 107, y: 45, width: 285, height: 56 }}
+          viewBox="0 0 360 180"
+          initialOffset={{ x: 0, y: 0 }}
+          start={{ x: 265, y: 88 }}
+          end={{ x: 352, y: 90 }}
+          labelBox={{ x: 10, y: 65, width: 250, height: 46 }}
           storageKey="guide-sidebar"
           storageVersion={guideVersion}
+          editable={isEditingGuides}
+          showDebug={isEditingGuides}
         />
       )}
     </>
@@ -220,4 +247,3 @@ export default function SiteHeader() {
     document.body,
   );
 }
-
