@@ -18,7 +18,7 @@ type Experience = {
 const experiences: Experience[] = [
   {
     logo: "cluega",
-    title: "Full-stack Developer",
+    title: "Full-Stack Engineer",
     company: "Cluega",
     shortName: "CLUEGA",
     website: "https://cluega.com",
