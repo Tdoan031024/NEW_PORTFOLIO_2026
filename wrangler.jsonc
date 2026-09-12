@@ -15,12 +15,5 @@
       "binding": "WORKER_SELF_REFERENCE",
       "service": "new-portfolio-2026"
     }
-  ],
-  "d1_databases": [
-    {
-      "binding": "DB",
-      "database_name": "portfolio-db",
-      "database_id": "portfolio-db"
-    }
   ]
 }

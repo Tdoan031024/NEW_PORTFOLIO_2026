@@ -16,6 +16,7 @@ const ibmPlexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://new-portfolio-2026.pages.dev"),
   title: {
     default: "Tuyen Doan | Full-Stack Software Engineer",
     template: "%s | Tuyen Doan",
