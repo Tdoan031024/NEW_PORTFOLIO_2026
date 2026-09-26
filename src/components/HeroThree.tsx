@@ -284,9 +284,15 @@ export default function HeroThree({
     renderer.domElement.addEventListener("webglcontextlost", handleContextLost, false);
     renderer.domElement.addEventListener("webglcontextrestored", handleContextRestored, false);
 
-    renderer.setPixelRatio(
-      Math.min(window.devicePixelRatio, isCoarsePointer ? 0.9 : lowPowerDevice ? 0.95 : 1),
-    );
+    // Keep the room sharp on high-density phones while capping render cost.
+    const maxPixelRatio = isCoarsePointer
+      ? lowPowerDevice
+        ? 1.25
+        : 1.75
+      : lowPowerDevice
+        ? 0.95
+        : 1.5;
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, maxPixelRatio));
     renderer.setClearColor(0x000000, 0);
     renderer.setSize(container.clientWidth, container.clientHeight);
     renderer.shadowMap.enabled = false;
