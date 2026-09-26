@@ -204,7 +204,7 @@ export default function IntroModelSection() {
         </>
       )}
       <div className="relative z-40 flex w-full flex-col items-center overflow-visible">
-        <div className="relative z-40 mt-20 h-[54svh] min-h-[340px] max-h-[470px] w-full overflow-visible rounded-none bg-transparent -mb-8 sm:mt-0 sm:h-[110vh] sm:min-h-0 sm:max-h-none sm:-mb-40 md:h-[135vh] md:-mb-60 lg:h-[160vh] lg:-mb-78">
+        <div className="relative z-40 mt-24 h-[54svh] min-h-[340px] max-h-[470px] w-full overflow-visible rounded-none bg-transparent -mb-28 sm:mt-0 sm:h-[110vh] sm:min-h-0 sm:max-h-none sm:-mb-40 md:h-[135vh] md:-mb-60 lg:h-[160vh] lg:-mb-78">
           <HeroThree
             className="relative z-40 h-full w-full overflow-visible"
             introZoom={true}
