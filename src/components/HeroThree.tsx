@@ -269,7 +269,7 @@ export default function HeroThree({
       (navigator.hardwareConcurrency ?? 8) <= 4;
     const scene = new THREE.Scene();
     const renderer = new THREE.WebGLRenderer({
-      antialias: !lowPowerDevice,
+      antialias: true,
       alpha: true,
       powerPreference: "high-performance",
     });
@@ -287,8 +287,8 @@ export default function HeroThree({
     // Keep the room sharp on high-density phones while capping render cost.
     const maxPixelRatio = isCoarsePointer
       ? lowPowerDevice
-        ? 1.25
-        : 1.75
+        ? 1.5
+        : 2.5
       : lowPowerDevice
         ? 0.95
         : 1.5;
@@ -296,6 +296,7 @@ export default function HeroThree({
     renderer.setClearColor(0x000000, 0);
     renderer.setSize(container.clientWidth, container.clientHeight);
     renderer.shadowMap.enabled = false;
+    const maxAnisotropy = renderer.capabilities.getMaxAnisotropy();
     container.appendChild(renderer.domElement);
 
     const camera = new THREE.PerspectiveCamera(
@@ -662,6 +663,15 @@ export default function HeroThree({
             const mesh = child as THREE.Mesh;
             mesh.castShadow = false;
             mesh.receiveShadow = false;
+            const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+            materials.forEach((material) => {
+              const texture = (material as THREE.Material & { map?: THREE.Texture }).map;
+              if (!texture) return;
+              texture.anisotropy = Math.min(maxAnisotropy, lowPowerDevice ? 4 : 8);
+              texture.magFilter = THREE.LinearFilter;
+              texture.minFilter = THREE.LinearMipmapLinearFilter;
+              texture.needsUpdate = true;
+            });
           });
           group.add(modelRoot);
           fitModelToView(modelRoot);

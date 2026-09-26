@@ -242,9 +242,9 @@ export default function HeroSection() {
   return (
     <section
       id="hero"
-      className="relative z-[260] mt-0 overflow-visible bg-transparent px-6 pb-28 pt-0 md:-mt-32 md:px-16"
+      className="relative z-[260] mt-0 overflow-visible bg-transparent px-6 pb-12 pt-0 md:-mt-32 md:px-16 md:pb-28"
     >
-      <div className="relative z-0 mx-auto flex max-w-7xl flex-col gap-12 lg:flex-row lg:items-center">
+      <div className="relative z-0 mx-auto flex max-w-7xl flex-col gap-4 lg:flex-row lg:items-center lg:gap-12">
         <div className="min-w-0 flex-1 lg:flex-[1.18]">
           <motion.div
             initial={{ opacity: 0, y: 14 }}
@@ -315,7 +315,7 @@ export default function HeroSection() {
           initial={{ opacity: 0, scale: 0.93 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.8, delay: 0.15 }}
-          className="mt-8 flex justify-center lg:mt-0 lg:flex-[0.92] lg:justify-end"
+          className="mt-0 flex justify-center lg:flex-[0.92] lg:justify-end"
         >
           <div
             onMouseMove={handleMouseMove}

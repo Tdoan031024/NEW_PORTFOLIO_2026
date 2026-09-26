@@ -380,13 +380,14 @@ const galaxyStyles = `
 .position-output:focus { border-color: #35eaff; box-shadow: 0 0 14px rgba(53,234,255,.25); }
 .position-hint { margin-top: 12px; font-size: 12px; line-height: 1.6; color: rgba(238,247,255,.7); }
 .mobile-hint { display: none; position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%); color: rgba(221,244,255,.68); font-size: 12px; z-index: 40; }
+.galaxy-viewport { width: 100%; overflow: hidden; }
 .skills-heading { position: relative; z-index: 120; text-align: center; pointer-events: none; width: 100%; padding: 48px 16px 12px; }
 .skills-heading h2 { margin: 0; font-size: clamp(1.1rem, 2.2vw, 1.9rem); font-weight: 700; letter-spacing: 0; color: rgba(236, 247, 255, 0.96); text-shadow: 0 0 16px rgba(53, 234, 255, 0.28); }
 @media (max-width: 1100px) { .galaxy-frame { width: 1120px; transform: scale(.8); } .tech-galaxy { min-height: 700px; } }
 @media (max-width: 760px) {
   .tech-galaxy { min-height: 0; padding: 0 0 16px; overflow: hidden; }
   .skills-heading { padding: 22px 16px 4px; }
-  .galaxy-frame { width: 980px; height: 550px; min-height: 0; margin-top: 4px; margin-bottom: calc(56.25vw - 556.75px); transform: scale(calc((100vw - 12px) / 980)); transform-origin: top center; }
+  .galaxy-frame { --galaxy-scale: calc((100vw - 24px) / 980px); width: 980px; height: 550px; min-height: 0; margin-top: 32px; margin-bottom: calc(56.12245vw - 563.469px); margin-left: calc((100vw - 980px) / 2); transform: scale(var(--galaxy-scale)); transform-origin: top center; }
   .position-recorder { margin-top: 24px; }
   .mobile-hint { display: block; position: relative; left: auto; bottom: auto; transform: none; margin: 0 auto; padding: 8px 12px 0; text-align: center; }
   .tech-galaxy *, .tech-galaxy *::before, .tech-galaxy *::after { animation: none !important; transition: none !important; }
@@ -420,6 +421,7 @@ export default function SkillsSection() {
   );
 
   const frameRef = useRef<HTMLDivElement | null>(null);
+  const galaxyViewportRef = useRef<HTMLDivElement | null>(null);
   const sectionRef = useRef<HTMLElement | null>(null);
   const draggingRef = useRef<DragState | null>(null);
   const dragFrameRef = useRef(0);
@@ -713,7 +715,13 @@ export default function SkillsSection() {
         <div className="skills-heading">
           <h2>Don’t Just List Skills — I Connect Systems.</h2>
         </div>
-        <div ref={frameRef} className="galaxy-frame">
+        <div
+          ref={galaxyViewportRef}
+          className="galaxy-viewport"
+          role="region"
+          aria-label="Skills galaxy"
+        >
+          <div ref={frameRef} className="galaxy-frame">
           <svg className="orbit-layer layer-svg" viewBox="0 0 1600 900" preserveAspectRatio="none" aria-hidden="true">
             <defs>
               <linearGradient id="orbitFront" x1="0" y1="0" x2="1" y2="0">
@@ -891,8 +899,9 @@ export default function SkillsSection() {
           </div>
 
           <div className="hud-vignette" />
+          </div>
         </div>
-        <div className="mobile-hint">Tech Galaxy - drag horizontally on small screens</div>
+        <div className="mobile-hint">All skills at a glance</div>
       </section>
     </>
   );
