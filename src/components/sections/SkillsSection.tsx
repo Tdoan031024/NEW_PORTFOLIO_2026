@@ -384,15 +384,17 @@ const galaxyStyles = `
 .skills-heading h2 { margin: 0; font-size: clamp(1.1rem, 2.2vw, 1.9rem); font-weight: 700; letter-spacing: 0; color: rgba(236, 247, 255, 0.96); text-shadow: 0 0 16px rgba(53, 234, 255, 0.28); }
 @media (max-width: 1100px) { .galaxy-frame { width: 1120px; transform: scale(.8); } .tech-galaxy { min-height: 700px; } }
 @media (max-width: 760px) {
-  .tech-galaxy { min-height: 640px; padding-top: 0; overflow-x: clip; overflow-y: visible; }
-  .skills-heading { padding: 36px 16px 8px; }
-  .galaxy-frame { width: 980px; min-height: 600px; margin-top: 4px; transform: scale(min(0.58, calc((100vw - 20px) / 980))); transform-origin: top center; }
+  .tech-galaxy { min-height: 0; padding-top: 0; overflow: hidden; }
+  .skills-heading { padding: 22px 16px 4px; }
+  .galaxy-frame { width: 980px; height: 550px; min-height: 0; margin-top: 4px; margin-bottom: calc(56.25vw - 556.75px); transform: scale(calc((100vw - 12px) / 980)); transform-origin: top center; }
   .position-recorder { margin-top: 24px; }
   .mobile-hint { display: block; bottom: 8px; }
+  .tech-galaxy *, .tech-galaxy *::before, .tech-galaxy *::after { animation: none !important; transition: none !important; }
+  .tech-node { opacity: 1; transform: translate(-50%, -50%) scale(1); will-change: auto; }
+  .node-shell, .star { filter: none; box-shadow: none; }
 }
 @media (max-width: 480px) {
-  .tech-galaxy { min-height: 520px; }
-  .galaxy-frame { transform: scale(calc((100vw - 12px) / 980)); }
+  .tech-galaxy { min-height: 0; }
 }
 `;
 

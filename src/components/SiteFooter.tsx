@@ -66,10 +66,10 @@ export default function SiteFooter() {
       {/* Subtle radial backdrop glow */}
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_70%_45%_at_50%_0%,rgba(34,211,238,0.08),transparent_70%)]" />
 
-      <div className="relative mx-auto max-w-7xl px-5 pb-14 pt-16 sm:px-8 md:px-12">
+      <div className="relative mx-auto max-w-7xl px-5 pb-10 pt-12 sm:px-8 sm:pb-14 sm:pt-16 md:px-12">
         <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-12 lg:gap-8">
           {/* Brand & Identity (Col 1: span 5) */}
-          <div className="lg:col-span-5 space-y-4">
+          <div className="lg:col-span-5 space-y-4 max-lg:flex max-lg:flex-col max-lg:items-center max-lg:text-center">
             <a
               href="#hero"
               aria-label="Tuyen Doan Portfolio Homepage"
@@ -88,7 +88,7 @@ export default function SiteFooter() {
                 : "Full-Stack Software Engineer focused on crafting scalable products, modern architectures, and engaging interactive experiences."}
             </p>
 
-            <div className="pt-1 text-xs text-white/50 space-y-1.5">
+            <div className="pt-1 text-xs text-white/50 space-y-1.5 max-lg:flex max-lg:flex-col max-lg:items-center">
               <p className="flex items-center gap-2">
                 <span>📍</span> {t("contactLocation")}
               </p>
@@ -108,7 +108,7 @@ export default function SiteFooter() {
           </div>
 
           {/* Navigation Links (Col 2: span 2) */}
-          <div className="lg:col-span-2 space-y-3">
+          <div className="hidden space-y-3 text-center md:block lg:col-span-2">
             <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-cyan-300">
               {language === "vi" ? "Điều hướng" : "Navigation"}
             </p>
@@ -131,11 +131,11 @@ export default function SiteFooter() {
           </div>
 
           {/* Featured Projects (Col 3: span 3) */}
-          <div className="lg:col-span-3 space-y-3">
+          <div className="hidden space-y-3 text-center md:block lg:col-span-3">
             <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-cyan-300">
               {language === "vi" ? "Dự án Tiêu biểu" : "Featured Work"}
             </p>
-            <ul className="space-y-2.5 text-sm">
+            <ul className="space-y-2.5 text-sm max-lg:flex max-lg:flex-col max-lg:items-center">
               {featuredProjects.map((item) => (
                 <li key={item.label}>
                   {item.isExternal ? (
@@ -165,7 +165,7 @@ export default function SiteFooter() {
           </div>
 
           {/* Connect & Socials (Col 4: span 2) */}
-          <div className="lg:col-span-2 space-y-3">
+          <div className="lg:col-span-2 space-y-3 max-lg:flex max-lg:flex-col max-lg:items-center max-lg:text-center">
             <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-cyan-300">
               {language === "vi" ? "Kết nối" : "Connect"}
             </p>

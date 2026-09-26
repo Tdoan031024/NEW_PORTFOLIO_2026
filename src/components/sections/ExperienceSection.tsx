@@ -263,7 +263,7 @@ function ExperienceCard({
   return (
     <article
       onClick={handleClick}
-      className={`group relative cursor-pointer overflow-hidden rounded-2xl border p-4 sm:p-5 transition-all duration-300 ${
+      className={`group relative cursor-pointer overflow-hidden rounded-2xl border p-3.5 sm:p-5 transition-all duration-300 ${
         isSelected
           ? "border-cyan-400 bg-[linear-gradient(180deg,rgba(8,20,44,0.98),rgba(5,14,32,0.98))] shadow-[0_0_35px_rgba(34,211,238,0.3)] ring-1 ring-cyan-400/50"
           : "border-white/10 bg-[linear-gradient(180deg,rgba(10,18,36,0.85),rgba(6,12,28,0.85))] shadow-[0_12px_30px_rgba(0,0,0,0.32)] hover:-translate-y-1 hover:border-cyan-300/40 hover:shadow-[0_16px_38px_rgba(34,211,238,0.14)]"
@@ -341,21 +341,21 @@ function ExperienceCard({
         </div>
       </div>
 
-      <p className="mt-4 text-[13px] font-medium leading-relaxed text-white/75 sm:text-[13.5px]">
+      <p className="mt-2.5 line-clamp-2 text-[12px] font-medium leading-relaxed text-white/75 sm:mt-4 sm:line-clamp-none sm:text-[13.5px]">
         {item.description}
       </p>
 
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-white/5">
+      <div className="mt-2.5 flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-white/5 sm:mt-4 sm:gap-3 sm:pt-3">
         {item.tags?.length ? (
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-1.5 sm:gap-2">
             {item.tags.map((tag) => (
-              <SkillTag key={tag}>{tag}</SkillTag>
+              <span key={tag} className="contents [&:nth-child(n+4)]:hidden sm:[&:nth-child(n+4)]:contents"><SkillTag>{tag}</SkillTag></span>
             ))}
           </div>
         ) : <div />}
 
         <div className="flex items-center gap-1.5 text-[11px] font-semibold text-cyan-300/80 group-hover:text-cyan-200 transition">
-          <span>{language === "vi" ? "Xem mô tả đầy đủ" : "View Full Overview"}</span>
+          <span>{language === "vi" ? "Chi tiết" : "Details"}</span>
           <span className="transition-transform group-hover:translate-x-1">→</span>
         </div>
       </div>

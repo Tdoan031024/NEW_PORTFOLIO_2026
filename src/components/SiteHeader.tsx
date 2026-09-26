@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import ThemeToggle from "@/components/ThemeToggle";
 import GoogleTranslate from "@/components/GoogleTranslate";
 import { useLanguage } from "@/components/LanguageProvider";
 import GuideCallout from "@/components/GuideCallout";
+import LanguageToggle from "@/components/LanguageToggle";
 
 const quickLinks = [
   { label: "About", href: "#hero", icon: "user" },
@@ -53,12 +53,29 @@ function SidebarIcon({ type }: { type: (typeof quickLinks)[number]["icon"] }) {
   );
 }
 
+function DownloadIcon() {
+  return (
+    <svg className="h-[18px] w-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M12 3v12m0 0 4-4m-4 4-4-4m-1 9h10a2 2 0 0 0 2-2v-2" />
+    </svg>
+  );
+}
+
+function MenuIcon() {
+  return <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path strokeLinecap="round" d="M4 7h16M4 12h16M4 17h16" /></svg>;
+}
+
+function CloseIcon() {
+  return <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path strokeLinecap="round" d="m6 6 12 12M18 6 6 18" /></svg>;
+}
+
 export default function SiteHeader() {
   const { t, language } = useLanguage();
   const [mounted, setMounted] = useState(false);
   const [visible, setVisible] = useState(false);
   const [entered, setEntered] = useState(false);
   const [hasScrolled, setHasScrolled] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sidebarGuideMounted, setSidebarGuideMounted] = useState(false);
   const [sidebarGuideVisible, setSidebarGuideVisible] = useState(false);
   const [isEditingGuides, setIsEditingGuides] = useState(false);
@@ -111,6 +128,15 @@ export default function SiteHeader() {
     window.addEventListener("scroll", updateScrollState, { passive: true });
     return () => window.removeEventListener("scroll", updateScrollState);
   }, []);
+
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setMobileMenuOpen(false);
+    };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [mobileMenuOpen]);
 
   useEffect(() => {
     if (!mounted || !visible) return;
@@ -181,24 +207,43 @@ export default function SiteHeader() {
             />
           </a>
           <div className="ml-auto flex items-center gap-2 sm:gap-3">
-            <GoogleTranslate />
-            {/* Tạm thời ẩn nút chuyển theme, mặc định dùng dark mode */}
-            {/* <ThemeToggle /> */}
-            <a
-              href="/assets/file/Fullstack_Developer-Do_Van_Tuyen_Doan.pdf"
-              target="_blank"
-              rel="noopener noreferrer"
-              download="Fullstack_Developer-Do_Van_Tuyen_Doan.pdf"
-              className="inline-flex items-center gap-1.5 rounded-full border border-cyan-200/55 bg-cyan-300/18 px-3 py-1.5 sm:px-4 sm:py-2 text-[11px] sm:text-xs font-semibold text-cyan-100 shadow-[0_0_22px_rgba(34,211,238,0.22)] transition hover:bg-cyan-300/28 hover:scale-[1.02] active:scale-95"
-            >
-              <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              <span>{t("downloadCv")}</span>
-            </a>
+            <div className="hidden items-center gap-2 sm:gap-3 md:flex">
+              <GoogleTranslate />
+              <a href="/assets/file/Fullstack_Developer-Do_Van_Tuyen_Doan.pdf" target="_blank" rel="noopener noreferrer" download="Fullstack_Developer-Do_Van_Tuyen_Doan.pdf" className="inline-flex items-center gap-1.5 rounded-full border border-cyan-200/55 bg-cyan-300/18 px-3 py-1.5 sm:px-4 sm:py-2 text-[11px] sm:text-xs font-semibold text-cyan-100 shadow-[0_0_22px_rgba(34,211,238,0.22)] transition hover:bg-cyan-300/28 hover:scale-[1.02] active:scale-95">
+                <DownloadIcon /><span>{t("downloadCv")}</span>
+              </a>
+            </div>
+            <button type="button" aria-label={mobileMenuOpen ? (language === "vi" ? "Đóng menu" : "Close menu") : (language === "vi" ? "Mở menu" : "Open menu")} aria-expanded={mobileMenuOpen} aria-controls="mobile-header-panel" onClick={() => setMobileMenuOpen((open) => !open)} className="grid h-10 w-10 place-items-center rounded-full border border-cyan-200/35 bg-[#071326]/80 text-cyan-100 shadow-[0_0_18px_rgba(34,211,238,.12)] backdrop-blur-md transition hover:border-cyan-200/70 md:hidden">
+              {mobileMenuOpen ? <CloseIcon /> : <MenuIcon />}
+            </button>
           </div>
         </div>
       </header>
+
+      {mobileMenuOpen && (
+        <>
+          <button type="button" aria-label={language === "vi" ? "Đóng menu" : "Close menu"} onClick={() => setMobileMenuOpen(false)} className="fixed inset-0 !z-[280] bg-black/35 backdrop-blur-[2px] md:hidden" />
+          <aside id="mobile-header-panel" aria-label={language === "vi" ? "Menu nhanh" : "Quick menu"} className="fixed right-3 top-[4.5rem] !z-[300] w-[min(19rem,calc(100vw-1.5rem))] rounded-2xl border border-white/15 bg-[#071326]/95 p-4 text-white shadow-[0_20px_60px_rgba(0,0,0,.65),0_0_28px_rgba(34,211,238,.12)] backdrop-blur-2xl md:hidden">
+            <div className="mb-4 flex items-center justify-between border-b border-white/10 pb-3">
+              <span className="text-xs font-bold uppercase tracking-[.18em] text-cyan-200">{language === "vi" ? "Truy cập nhanh" : "Quick access"}</span>
+              <button type="button" aria-label={language === "vi" ? "Đóng menu" : "Close menu"} onClick={() => setMobileMenuOpen(false)} className="grid h-8 w-8 place-items-center rounded-full text-white/65 hover:bg-white/10 hover:text-white"><CloseIcon /></button>
+            </div>
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <span className="text-sm text-white/65">{language === "vi" ? "Ngôn ngữ" : "Language"}</span>
+              <LanguageToggle />
+            </div>
+            <a href="/assets/file/Fullstack_Developer-Do_Van_Tuyen_Doan.pdf" target="_blank" rel="noopener noreferrer" download="Fullstack_Developer-Do_Van_Tuyen_Doan.pdf" onClick={() => setMobileMenuOpen(false)} className="mb-3 flex w-full items-center gap-3 rounded-xl border border-cyan-200/25 bg-cyan-300/10 px-3.5 py-3 text-sm font-semibold text-cyan-100 transition hover:bg-cyan-300/20">
+              <DownloadIcon />{t("downloadCv")}
+            </a>
+            <nav aria-label={language === "vi" ? "Điều hướng" : "Navigation"} className="grid gap-1">
+              {quickLinks.map((item) => {
+                const label = item.label === "About" ? (language === "vi" ? "Giới thiệu" : "About") : item.label === "Skills" ? (language === "vi" ? "Kỹ năng" : "Skills") : item.label === "Works" ? (language === "vi" ? "Kinh nghiệm" : "Works") : (language === "vi" ? "Liên hệ" : "Contact");
+                return <a key={item.label} href={item.href} onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm text-white/75 transition hover:bg-white/[.07] hover:text-cyan-100"><SidebarIcon type={item.icon} />{label}</a>;
+              })}
+            </nav>
+          </aside>
+        </>
+      )}
 
       {/* Desktop Sidebar Quick Links */}
       <nav
@@ -231,39 +276,6 @@ export default function SiteHeader() {
               <span className="pointer-events-none absolute right-[calc(100%+10px)] rounded-md border border-white/10 bg-[#050b18]/95 px-2 py-1 text-[11px] text-white/85 opacity-0 transition group-hover:opacity-100">
                 {label}
               </span>
-            </a>
-          );
-        })}
-      </nav>
-
-      {/* Mobile Floating Bottom Dock */}
-      <nav
-        aria-label="Mobile navigation"
-        className={`fixed bottom-4 left-1/2 !z-[220] flex -translate-x-1/2 items-center gap-2 rounded-full border border-white/15 bg-[#050b18]/85 p-1.5 shadow-[0_12px_36px_rgba(0,0,0,0.65)] backdrop-blur-xl transition-all duration-500 ease-out md:hidden ${
-          hasScrolled
-            ? "pointer-events-auto translate-y-0 opacity-100"
-            : "pointer-events-none translate-y-8 opacity-0"
-        }`}
-      >
-        {quickLinks.map((item) => {
-          const label =
-            item.label === "About"
-              ? language === "vi" ? "Giới thiệu" : "About"
-              : item.label === "Skills"
-              ? language === "vi" ? "Kỹ năng" : "Skills"
-              : item.label === "Works"
-              ? language === "vi" ? "Kinh nghiệm" : "Works"
-              : language === "vi" ? "Liên hệ" : "Contact";
-
-          return (
-            <a
-              key={item.label}
-              href={item.href}
-              title={label}
-              aria-label={label}
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.06] text-white/85 transition active:scale-90 active:border-cyan-300/50 active:text-cyan-200"
-            >
-              <SidebarIcon type={item.icon} />
             </a>
           );
         })}

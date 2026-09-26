@@ -133,7 +133,7 @@ export default function IntroModelSection() {
   return (
     <section
       id="intro-3d"
-      className="relative z-[180] flex min-h-screen items-center justify-center overflow-visible pb-0"
+      className="relative z-[180] flex min-h-0 items-center justify-center overflow-visible pb-0 md:min-h-screen"
     >
       {/* Floating Toolbar chỉ hiển thị khi mở chế độ chỉnh sửa */}
       {isEditingGuides && (
@@ -204,7 +204,7 @@ export default function IntroModelSection() {
         </>
       )}
       <div className="relative z-40 flex w-full flex-col items-center overflow-visible">
-        <div className="relative z-40 h-[85vh] sm:h-[110vh] md:h-[135vh] lg:h-[160vh] w-full overflow-visible rounded-none bg-transparent -mb-20 sm:-mb-40 md:-mb-60 lg:-mb-78">
+        <div className="relative z-40 mt-20 h-[54svh] min-h-[340px] max-h-[470px] w-full overflow-visible rounded-none bg-transparent -mb-8 sm:mt-0 sm:h-[110vh] sm:min-h-0 sm:max-h-none sm:-mb-40 md:h-[135vh] md:-mb-60 lg:h-[160vh] lg:-mb-78">
           <HeroThree
             className="relative z-40 h-full w-full overflow-visible"
             introZoom={true}

@@ -242,7 +242,7 @@ export default function HeroSection() {
   return (
     <section
       id="hero"
-      className="relative z-[260] -mt-24 overflow-visible bg-transparent px-6 pb-28 pt-0 md:-mt-32 md:px-16"
+      className="relative z-[260] mt-0 overflow-visible bg-transparent px-6 pb-28 pt-0 md:-mt-32 md:px-16"
     >
       <div className="relative z-0 mx-auto flex max-w-7xl flex-col gap-12 lg:flex-row lg:items-center">
         <div className="min-w-0 flex-1 lg:flex-[1.18]">

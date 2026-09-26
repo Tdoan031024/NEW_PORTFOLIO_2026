@@ -66,7 +66,7 @@ export default function ContactSection() {
               whileInView={{ opacity: 1, x: 0, y: 0 }}
               viewport={{ once: true, amount: 0.35 }}
               transition={{ duration: 0.85, ease: "easeOut" }}
-              className={isMobile ? "" : "lg:pr-6"}
+              className={isMobile ? "text-center" : "lg:pr-6"}
             >
               <h2 className="text-3xl sm:text-4xl font-black tracking-[-0.03em] text-white md:text-5xl">
                 {t("contactTitle")}
@@ -74,7 +74,7 @@ export default function ContactSection() {
               <p className="mt-5 max-w-xl text-[15px] sm:text-[16px] leading-7 sm:leading-8 text-white/70">
                 {t("contactDesc")}
               </p>
-              <div className="mt-7 space-y-2 text-sm text-white/60">
+              <div className={`mt-7 space-y-2 text-sm text-white/60 ${isMobile ? "flex flex-col items-center" : ""}`}>
                 <p>
                   Email:{" "}
                   <a href="mailto:dovantuyendoan14@gmail.com" className="text-cyan-300 hover:underline">
@@ -100,7 +100,7 @@ export default function ContactSection() {
               whileInView={{ opacity: 1, x: 0, y: 0 }}
               viewport={{ once: true, amount: 0.3 }}
               transition={{ duration: 0.8, delay: isMobile ? 0.1 : 0.25, ease: "easeOut" }}
-              className="rounded-3xl border border-white/10 bg-[linear-gradient(180deg,rgba(10,18,36,0.9),rgba(6,12,28,0.9))] p-5 sm:p-6 shadow-[0_18px_44px_rgba(0,0,0,0.33)] md:p-8"
+              className="rounded-3xl border border-white/10 bg-[linear-gradient(180deg,rgba(10,18,36,0.9),rgba(6,12,28,0.9))] p-4 sm:p-6 shadow-[0_18px_44px_rgba(0,0,0,0.33)] md:p-8"
             >
               <div className="grid gap-4 md:grid-cols-2">
                 <input

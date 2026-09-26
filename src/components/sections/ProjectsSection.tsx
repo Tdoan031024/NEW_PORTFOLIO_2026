@@ -429,10 +429,10 @@ function ProjectPreviewFrame({ project }: { project: ProjectItem }) {
     <a
       href={`/projects/${project.slug}`}
       aria-label={`View details for ${project.title}`}
-      className="group/preview relative block h-full w-full min-h-[220px] cursor-pointer md:min-h-[240px]"
+      className="group/preview relative block h-full w-full min-h-[155px] cursor-pointer sm:min-h-[220px] md:min-h-[240px]"
     >
       {project.previewImage ? (
-        <div className="h-full w-full min-h-[220px] overflow-hidden rounded-xl border border-cyan-300/15 bg-[#06101f] md:min-h-[240px]">
+        <div className="h-full w-full min-h-[155px] overflow-hidden rounded-xl border border-cyan-300/15 bg-[#06101f] sm:min-h-[220px] md:min-h-[240px]">
           <img
             src={project.previewImage}
             alt={`${project.title} preview`}
@@ -440,7 +440,7 @@ function ProjectPreviewFrame({ project }: { project: ProjectItem }) {
           />
         </div>
       ) : (
-        <div className="h-full w-full min-h-[220px] md:min-h-[240px]">
+        <div className="h-full w-full min-h-[155px] sm:min-h-[220px] md:min-h-[240px]">
           <PreviewMockup type={project.preview} />
         </div>
       )}
@@ -470,8 +470,8 @@ function TimelineInfo({ project }: { project: ProjectItem }) {
 function ProjectCard({ project, index }: { project: ProjectItem; index: number }) {
   const { language } = useLanguage();
   return (
-    <article
-      className="project-entry group relative flex flex-col justify-between rounded-2xl border border-white/10 bg-[linear-gradient(180deg,rgba(10,18,36,0.92),rgba(6,12,28,0.92))] p-4 sm:p-5 shadow-[0_14px_34px_rgba(0,0,0,0.35)] transition-all duration-300 hover:-translate-y-1 hover:border-cyan-300/40 hover:shadow-[0_20px_44px_rgba(34,211,238,0.16)] md:min-h-[285px]"
+      <article
+      className="project-entry group relative flex flex-col justify-between rounded-2xl border border-white/10 bg-[linear-gradient(180deg,rgba(10,18,36,0.92),rgba(6,12,28,0.92))] p-3.5 sm:p-5 shadow-[0_14px_34px_rgba(0,0,0,0.35)] transition-all duration-300 hover:-translate-y-1 hover:border-cyan-300/40 hover:shadow-[0_20px_44px_rgba(34,211,238,0.16)] md:min-h-[285px]"
       style={{ animationDelay: `${index * 90}ms` }}
     >
       <div className="grid h-full gap-4 md:grid-cols-[1.16fr_0.84fr_32px] md:items-stretch">
@@ -481,13 +481,13 @@ function ProjectCard({ project, index }: { project: ProjectItem; index: number }
               <h3 className="text-xl font-extrabold tracking-[-0.03em] text-white line-clamp-1">{project.title}</h3>
             </div>
             <p className="mt-1 text-sm font-semibold text-cyan-300">{project.role}</p>
-            <p className="mt-2.5 text-[14px] leading-6 text-white/65 line-clamp-3">{project.description}</p>
+            <p className="mt-2 text-[13px] leading-5 text-white/65 line-clamp-2 sm:mt-2.5 sm:text-[14px] sm:leading-6 sm:line-clamp-3">{project.description}</p>
           </div>
 
           <div className="pt-3">
             <div className="flex flex-wrap gap-2">
-              {project.techs.map((tech) => (
-                <TechBadge key={tech}>{tech}</TechBadge>
+              {project.techs.map((tech, techIndex) => (
+                <span key={tech} className={techIndex > 2 ? "hidden sm:inline" : "inline"}><TechBadge>{tech}</TechBadge></span>
               ))}
             </div>
 
@@ -517,7 +517,7 @@ function ProjectCard({ project, index }: { project: ProjectItem; index: number }
           </div>
         </div>
 
-        <div className="h-full min-h-[220px] md:min-h-[240px]">
+        <div className="h-full min-h-[155px] sm:min-h-[220px] md:min-h-[240px]">
           <ProjectPreviewFrame project={project} />
         </div>
 
@@ -616,4 +616,3 @@ export default function ProjectsSection() {
     </section>
   );
 }
-
