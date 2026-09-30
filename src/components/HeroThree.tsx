@@ -37,6 +37,8 @@ type HeroThreeProps = {
   initialModelRotationY?: number;
   modelOffset?: { x?: number; y?: number; z?: number };
   maxRotationAngle?: number;
+  mobileRotation360?: boolean;
+  mobileZoom?: boolean;
 };
 
 const DEFAULT_MODEL_URL = "/assets/models/room-IT-3d-normal.glb";
@@ -227,6 +229,8 @@ export default function HeroThree({
   initialModelRotationY,
   modelOffset,
   maxRotationAngle = Math.PI / 2,
+  mobileRotation360 = false,
+  mobileZoom = false,
 }: HeroThreeProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const controlsRef = useRef<OrbitControls | null>(null);
@@ -327,9 +331,13 @@ export default function HeroThree({
     }
 
     let controls: OrbitControls | null = null;
+    let mobileControlsQuery: MediaQueryList | null = null;
+    let syncMobileControls: (() => void) | null = null;
     let hasUserInteracted = false;
     let hasBouncedIntro = false;
-    const canUseControls = Boolean(enableControls && (enableRotate || enablePan || enableZoom));
+    const canUseControls = Boolean(
+      enableControls && (enableRotate || enablePan || enableZoom || mobileRotation360 || mobileZoom),
+    );
     if (canUseControls) {
       controls = new OrbitControls(camera, renderer.domElement);
       controlsRef.current = controls;
@@ -337,25 +345,38 @@ export default function HeroThree({
       controls.dampingFactor = 0.05;
       controls.enableRotate = Boolean(enableRotate);
       controls.enablePan = enablePan;
-      controls.enableZoom = Boolean(enableZoom);
-      if (!enableZoom) {
-        const camDist = new THREE.Vector3(baseCameraPosition.x, baseCameraPosition.y, baseCameraPosition.z).distanceTo(
-          new THREE.Vector3(baseTarget.x, baseTarget.y, baseTarget.z),
-        );
-        controls.minDistance = camDist;
-        controls.maxDistance = camDist;
-      } else {
-        controls.minDistance = 0.2;
-        controls.maxDistance = 25;
-      }
+      const camDist = new THREE.Vector3(baseCameraPosition.x, baseCameraPosition.y, baseCameraPosition.z).distanceTo(
+        new THREE.Vector3(baseTarget.x, baseTarget.y, baseTarget.z),
+      );
       // Giới hạn góc xoay ngang (Azimuth): Cung 90 độ (±45 độ quanh góc nhìn mặc định)
       const baseAzimuth = Math.atan2(
         baseCameraPosition.x - baseTarget.x,
         baseCameraPosition.z - baseTarget.z,
       );
       const halfAngle = maxRotationAngle / 2;
-      controls.minAzimuthAngle = baseAzimuth - halfAngle;
-      controls.maxAzimuthAngle = baseAzimuth + halfAngle;
+      const limitedMinAzimuth = baseAzimuth - halfAngle;
+      const limitedMaxAzimuth = baseAzimuth + halfAngle;
+      if (mobileRotation360 || mobileZoom) {
+        mobileControlsQuery = window.matchMedia("(max-width: 760px)");
+        syncMobileControls = () => {
+          const isMobileLayout = mobileControlsQuery?.matches ?? false;
+          const allowFullRotation = mobileRotation360 && isMobileLayout;
+          const allowZoom = enableZoom || (mobileZoom && isMobileLayout);
+          controls!.minAzimuthAngle = allowFullRotation ? -Infinity : limitedMinAzimuth;
+          controls!.maxAzimuthAngle = allowFullRotation ? Infinity : limitedMaxAzimuth;
+          controls!.enableZoom = allowZoom;
+          controls!.minDistance = enableZoom ? 0.2 : mobileZoom && isMobileLayout ? camDist * 0.65 : camDist;
+          controls!.maxDistance = enableZoom ? 25 : mobileZoom && isMobileLayout ? camDist * 1.8 : camDist;
+        };
+        syncMobileControls();
+        mobileControlsQuery.addEventListener("change", syncMobileControls);
+      } else {
+        controls.minAzimuthAngle = limitedMinAzimuth;
+        controls.maxAzimuthAngle = limitedMaxAzimuth;
+        controls.enableZoom = Boolean(enableZoom);
+        controls.minDistance = enableZoom ? 0.2 : camDist;
+        controls.maxDistance = enableZoom ? 25 : camDist;
+      }
 
       // Giới hạn góc xoay dọc (Polar): tránh lật ngược hoặc chìm xuống dưới sàn
       const camDistForPolar = new THREE.Vector3(baseCameraPosition.x, baseCameraPosition.y, baseCameraPosition.z).distanceTo(
@@ -996,7 +1017,7 @@ export default function HeroThree({
         renderer.domElement.addEventListener("pointermove", handlePointerMove);
         renderer.domElement.addEventListener("pointerleave", handlePointerLeave);
       }
-      renderer.domElement.addEventListener("pointerdown", handlePointerDown);
+      renderer.domElement.addEventListener("pointerdown", handlePointerDown, true);
       renderer.domElement.addEventListener("click", handleClick);
       window.addEventListener("pointerup", handlePointerUp);
     }
@@ -1271,12 +1292,15 @@ export default function HeroThree({
       window.clearTimeout(safetyTimer);
       resizeObserver.disconnect();
       observer.disconnect();
+      if (mobileControlsQuery && syncMobileControls) {
+        mobileControlsQuery.removeEventListener("change", syncMobileControls);
+      }
       if (enableInteraction) {
         if (enableHover) {
           renderer.domElement.removeEventListener("pointermove", handlePointerMove);
           renderer.domElement.removeEventListener("pointerleave", handlePointerLeave);
         }
-        renderer.domElement.removeEventListener("pointerdown", handlePointerDown);
+        renderer.domElement.removeEventListener("pointerdown", handlePointerDown, true);
         renderer.domElement.removeEventListener("click", handleClick);
         window.removeEventListener("pointerup", handlePointerUp);
       }
@@ -1299,7 +1323,7 @@ export default function HeroThree({
         container.removeChild(renderer.domElement);
       }
     };
-  }, [enableHover, enableInteraction, modelUrl, enableControls, enablePan, enableZoom, showCoordinateHelper]);
+  }, [enableHover, enableInteraction, modelUrl, enableControls, enableRotate, enablePan, enableZoom, showCoordinateHelper, maxRotationAngle, mobileRotation360, mobileZoom]);
 
   useEffect(() => {
     const handleOpenGame = () => setIsGameOpen(true);

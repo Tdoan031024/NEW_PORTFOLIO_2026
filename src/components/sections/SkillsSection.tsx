@@ -302,6 +302,10 @@ function Icon({ type }: { type: string }): ReactNode {
 const galaxyStyles = `
 .tech-galaxy { position: relative; z-index: 6; width: 100%; min-height: 85vh; overflow: visible; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; background: transparent; isolation: auto; }
 .tech-galaxy.is-paused *, .tech-galaxy.is-reduced * { animation-play-state: paused !important; }
+.tech-galaxy.has-active-group .orbit-path,
+.tech-galaxy.has-active-group .connector,
+.tech-galaxy.has-active-group .led-dot,
+.tech-galaxy.has-active-group .star { animation-play-state: paused !important; }
 .tech-galaxy.is-paused .star-layer { display: none; }
 .tech-galaxy.is-reduced .star-layer, .tech-galaxy.is-reduced .connect-layer:not(.hub-connectors) { display: none; }
 .tech-galaxy::before, .tech-galaxy::after { content: none; }
@@ -331,28 +335,28 @@ const galaxyStyles = `
 .hub-connectors { display: none; }
 .star { position: absolute; border-radius: 50%; opacity: .78; box-shadow: 0 0 8px currentColor; animation: twinkle linear infinite; }
 @keyframes twinkle { 0%,100% { transform: scale(.8); opacity:.45; } 50% { transform: scale(1.25); opacity:1; } }
-.tech-node { position: absolute; left: var(--x); top: var(--y); width: var(--size); height: var(--size); transform: translate(-50%, -50%) scale(.66); opacity: 0; display: grid; place-items: center; cursor: grab; touch-action: pan-y; user-select: none; animation: nodeIntro .62s cubic-bezier(.18,.89,.32,1.28) forwards; animation-delay: var(--delay); transition: transform .22s ease, opacity .22s ease, filter .22s ease; border: none; background: none; padding: 0; contain: layout style; will-change: transform, filter; }
+.tech-node { position: absolute; left: var(--x); top: var(--y); width: var(--size); height: var(--size); transform: translate(-50%, -50%) scale(.66); opacity: 0; display: grid; place-items: center; cursor: grab; touch-action: pan-y; user-select: none; animation: nodeIntro .62s cubic-bezier(.18,.89,.32,1.28) forwards; animation-delay: var(--delay); transition: transform .22s ease, opacity .22s ease; border: none; background: none; padding: 0; contain: layout style; }
 @keyframes nodeIntro { to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
-.tech-galaxy.has-active-group .tech-node:not(.is-highlighted) { opacity: .38; filter: brightness(.62) saturate(.58); }
-.tech-node:hover, .tech-node.is-highlighted { transform: translate(-50%, -50%) scale(1.1); z-index: 80; filter: brightness(1.1) saturate(1.06) drop-shadow(0 0 10px var(--color)) drop-shadow(0 0 22px color-mix(in srgb, var(--color) 58%, transparent)); }
+.tech-galaxy.has-active-group .tech-node:not(.is-highlighted) { opacity: .38; }
+.tech-node:hover, .tech-node.is-highlighted { transform: translate(-50%, -50%) scale(1.1); z-index: 80; }
 .tech-node.is-dragging { cursor: grabbing; transform: translate(-50%, -50%) scale(1.14); z-index: 70; }
 .node-shell { position: absolute; inset: 0; border-radius: 50%; background: radial-gradient(circle at 50% 45%, rgba(255,255,255,.11), transparent 34%), linear-gradient(135deg, rgba(255,255,255,.12), rgba(255,255,255,.02)); border: 1px solid rgba(255,255,255,.18); box-shadow: 0 0 8px var(--color), 0 0 18px color-mix(in srgb, var(--color) 70%, transparent), inset 0 0 16px rgba(255,255,255,.08); clip-path: polygon(50% 0%, 88% 14%, 100% 50%, 86% 88%, 50% 100%, 13% 87%, 0% 50%, 14% 13%); }
 @keyframes nodeBreath { from { filter: brightness(.94); } to { filter: brightness(1.18); } }
 .node-shell::before, .node-shell::after { content: ""; position: absolute; inset: 6px; border-radius: inherit; clip-path: inherit; pointer-events: none; }
 .node-shell::before { border: 1px dashed rgba(255,255,255,.28); opacity:.72; }
 .node-shell::after { inset: -6px; background: conic-gradient(from 0deg, transparent 0 18%, var(--color) 22%, transparent 28% 56%, var(--color2) 62%, transparent 70% 100%); opacity:.18; filter: blur(5px); }
-.tech-node.is-highlighted .node-shell { background: radial-gradient(circle at 50% 42%, rgba(255,255,255,.22), rgba(255,255,255,.08) 32%, transparent 58%), linear-gradient(135deg, color-mix(in srgb, var(--color) 22%, rgba(255,255,255,.12)), rgba(255,255,255,.04)); border-color: color-mix(in srgb, var(--color) 58%, white); box-shadow: 0 0 12px var(--color), 0 0 28px color-mix(in srgb, var(--color) 62%, transparent), 0 0 42px color-mix(in srgb, var(--color2) 44%, transparent), inset 0 0 18px rgba(255,255,255,.14); animation: selectedNodePulse 1.7s ease-in-out infinite alternate; }
+.tech-node.is-highlighted .node-shell { background: radial-gradient(circle at 50% 42%, rgba(255,255,255,.22), rgba(255,255,255,.08) 32%, transparent 58%), linear-gradient(135deg, color-mix(in srgb, var(--color) 22%, rgba(255,255,255,.12)), rgba(255,255,255,.04)); border-color: color-mix(in srgb, var(--color) 58%, white); box-shadow: 0 0 12px var(--color), 0 0 22px color-mix(in srgb, var(--color) 48%, transparent), inset 0 0 12px rgba(255,255,255,.12); }
 .tech-node.is-highlighted .node-shell::before { border-color: rgba(255,255,255,.46); opacity: .88; }
-.tech-node.is-highlighted .node-shell::after { inset: -9px; opacity: .34; filter: blur(7px); animation: rotateRing 4s linear infinite; }
+.tech-node.is-highlighted .node-shell::after { inset: -6px; opacity: .28; filter: none; }
 @keyframes selectedNodePulse { from { filter: brightness(1.02); } to { filter: brightness(1.12); } }
 @keyframes rotateRing { to { transform: rotate(360deg); } }
-.node-icon { position: relative; width: 44%; height: 44%; display: grid; place-items: center; color: var(--color); filter: drop-shadow(0 0 6px var(--color)); z-index: 2; }
+.node-icon { position: relative; width: 44%; height: 44%; display: grid; place-items: center; color: var(--color); z-index: 2; }
 .node-icon svg { width: 100%; height: 100%; }
 .node-icon img { width: 100%; height: 100%; object-fit: contain; }
 .node-letter { font-weight: 850; font-size: clamp(17px, 1.5vw, 26px); line-height: 1; letter-spacing: 0; }
 .node-letter-small { font-size: clamp(12px, 1vw, 17px); letter-spacing: 0; line-height: .95; }
 .node-name { position: absolute; left: 50%; top: calc(100% + 7px); transform: translateX(-50%); min-width: 92px; text-align: center; font-size: clamp(9px, .66vw, 12px); font-weight: 700; color: rgba(241,251,255,.88); text-shadow: 0 0 8px rgba(255,255,255,.35), 0 0 14px var(--color); pointer-events: none; }
-.tech-node.is-highlighted .node-icon { transform: scale(1.04); filter: drop-shadow(0 0 7px currentColor) drop-shadow(0 0 16px var(--color)); }
+.tech-node.is-highlighted .node-icon { transform: scale(1.04); }
 .tech-node:hover .node-name, .tech-node.is-highlighted .node-name { color: white; text-shadow: 0 0 6px rgba(255,255,255,.85), 0 0 14px var(--color), 0 0 24px var(--color2); }
 .group-label { position: absolute; left: var(--x); top: var(--y); transform: translate(-50%, -50%); display: inline-flex; align-items: center; gap: 10px; min-height: 34px; padding: 5px 14px 5px 6px; border: 1px solid rgba(255,255,255,.18); border-radius: 999px; background: linear-gradient(180deg, rgba(15,18,48,.75), rgba(5,8,24,.48)); box-shadow: 0 0 14px var(--color), inset 0 0 14px rgba(255,255,255,.035); backdrop-filter: blur(10px); pointer-events: auto; cursor: pointer; user-select: none; touch-action: pan-y; transition: transform .24s ease, box-shadow .24s ease; }
 .group-label .number { width: 24px; height: 24px; display: grid; place-items: center; border-radius: 50%; color: var(--color); border: 1px solid rgba(255,255,255,.24); font-size: 12px; font-weight: 900; text-shadow: 0 0 12px var(--color); background: rgba(255,255,255,.04); }
@@ -383,11 +387,19 @@ const galaxyStyles = `
 .galaxy-viewport { width: 100%; overflow: hidden; }
 .skills-heading { position: relative; z-index: 120; text-align: center; pointer-events: none; width: 100%; padding: 48px 16px 12px; }
 .skills-heading h2 { margin: 0; font-size: clamp(1.1rem, 2.2vw, 1.9rem); font-weight: 700; letter-spacing: 0; color: rgba(236, 247, 255, 0.96); text-shadow: 0 0 16px rgba(53, 234, 255, 0.28); }
-@media (max-width: 1100px) { .galaxy-frame { width: 1120px; transform: scale(.8); } .tech-galaxy { min-height: 700px; } }
+@media (max-width: 1100px) {
+  .galaxy-frame { width: 1120px; transform: scale(.8); }
+  .tech-galaxy { min-height: 700px; }
+  .label-layer .group-label:nth-child(1) { top: calc(var(--y) - 5%) !important; }
+  .label-layer .group-label:nth-child(2) { top: calc(var(--y) - 8%) !important; }
+}
 @media (max-width: 760px) {
   .tech-galaxy { min-height: 0; padding: 0 0 16px; overflow: hidden; }
   .skills-heading { padding: 22px 16px 4px; }
-  .galaxy-frame { --galaxy-scale: calc((100vw - 24px) / 980px); width: 980px; height: 550px; min-height: 0; margin-top: 32px; margin-bottom: calc(56.12245vw - 563.469px); margin-left: calc((100vw - 980px) / 2); transform: scale(var(--galaxy-scale)); transform-origin: top center; }
+  .galaxy-viewport { position: relative; width: calc(100vw - 24px); aspect-ratio: 980 / 550; margin-top: 32px; overflow: visible; }
+  .galaxy-frame { --galaxy-scale: calc((100vw - 24px) / 980px); position: absolute; top: 0; left: 50%; width: 980px; height: 550px; min-height: 0; margin: 0; transform: translateX(-50%) scale(var(--galaxy-scale)); transform-origin: top center; }
+  .label-layer .group-label:nth-child(2) { left: 95% !important; }
+  .label-layer .group-label:nth-child(5) { left: 13% !important; }
   .position-recorder { margin-top: 24px; }
   .mobile-hint { display: block; position: relative; left: auto; bottom: auto; transform: none; margin: 0 auto; padding: 8px 12px 0; text-align: center; }
   .tech-galaxy *, .tech-galaxy *::before, .tech-galaxy *::after { animation: none !important; transition: none !important; }
@@ -396,6 +408,7 @@ const galaxyStyles = `
 }
 @media (max-width: 480px) {
   .tech-galaxy { min-height: 0; }
+  .skills-heading h2 { max-width: 34ch; margin-inline: auto; line-height: 1.25; }
 }
 `;
 
@@ -614,7 +627,6 @@ export default function SkillsSection() {
     event: ReactTouchEvent<HTMLButtonElement>,
   ) => {
     setActiveGroup(groupId);
-    setSelectedGroup(groupId);
     const touch = event.touches[0];
     if (touch) {
       startGroupLabelDrag(groupId, touch.clientX, touch.clientY);
@@ -665,6 +677,7 @@ export default function SkillsSection() {
       flushDragMove();
       draggingRef.current = null;
       pendingDragPointRef.current = null;
+      setActiveGroup(null);
       setDraggingNodeKey(null);
       setDraggingGroupId(null);
       document.body.style.cursor = "";
@@ -797,7 +810,7 @@ export default function SkillsSection() {
             ))}
           </div>
 
-          {isSectionVisible && (
+          {isSectionVisible && !highlightedGroup && (
             <svg className="connect-layer layer-svg" viewBox="0 0 1600 900" preserveAspectRatio="none" aria-hidden="true">
               {movingDots.map((item) => (
                 <g key={item.id}>

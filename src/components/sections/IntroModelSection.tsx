@@ -210,6 +210,8 @@ export default function IntroModelSection() {
             introZoom={true}
             enableControls={true}
             enableRotate={true}
+            mobileRotation360={true}
+            mobileZoom={true}
             enablePan={false}
             enableZoom={false}
             maxRotationAngle={Math.PI / 2}
