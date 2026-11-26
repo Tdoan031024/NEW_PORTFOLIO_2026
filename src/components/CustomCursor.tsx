@@ -45,11 +45,9 @@ export default function CustomCursor() {
     const cursor = cursorRef.current;
     if (!canvas || !cursor) return;
 
-    // Enable custom star cursor on body
-    document.body.classList.add("custom-star-cursor-active");
-
     const ctx = canvas.getContext("2d", { alpha: true });
     if (!ctx) return;
+    const paused = () => document.hidden || document.documentElement.dataset.portfolioIntro === "active";
 
     let width = (canvas.width = window.innerWidth);
     let height = (canvas.height = window.innerHeight);
@@ -70,6 +68,7 @@ export default function CustomCursor() {
     let isHovering = false;
     let rafId = 0;
     let active = true;
+    let lastFrame = 0;
 
     // Helper to spawn a star or micro photon
     const spawnParticle = (
@@ -146,6 +145,8 @@ export default function CustomCursor() {
     };
 
     const handleMouseMove = (e: MouseEvent) => {
+      if (paused()) return;
+      document.body.classList.add("custom-star-cursor-active");
       mouseX = e.clientX;
       mouseY = e.clientY;
 
@@ -171,10 +172,12 @@ export default function CustomCursor() {
         }
         lastX = mouseX;
         lastY = mouseY;
+        wake();
       }
     };
 
     const handleMouseDown = (e: MouseEvent) => {
+      if (paused()) return;
       isMouseDown = true;
       cursor.classList.add("is-active");
 
@@ -182,6 +185,7 @@ export default function CustomCursor() {
       for (let i = 0; i < 8; i++) {
         spawnParticle(e.clientX, e.clientY, 2.4, true);
       }
+      wake();
     };
 
     const handleMouseUp = () => {
@@ -195,11 +199,12 @@ export default function CustomCursor() {
     };
 
     const handleMouseEnter = () => {
-      cursor.style.opacity = "1";
+      if (paused()) return;
       document.body.classList.add("custom-star-cursor-active");
     };
 
     const handleMouseOver = (e: MouseEvent) => {
+      if (paused()) return;
       const target = e.target as HTMLElement | null;
       if (!target) return;
 
@@ -223,18 +228,20 @@ export default function CustomCursor() {
     document.addEventListener("mouseover", handleMouseOver, { passive: true });
 
     // Main animation loop for stardust canvas
-    const loop = () => {
-      if (!active) return;
-
+    const loop = (now: number) => {
+      rafId = 0;
+      if (!active || paused()) return;
+      const dt = lastFrame ? Math.min((now - lastFrame) / 16.667, 3) : 1;
+      lastFrame = now;
       ctx.clearRect(0, 0, width, height);
 
       for (let i = particles.length - 1; i >= 0; i--) {
         const p = particles[i];
-        p.x += p.vx;
-        p.y += p.vy;
-        p.rotation += p.spin;
-        p.alpha -= p.decay;
-        p.size *= 0.978;
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
+        p.rotation += p.spin * dt;
+        p.alpha -= p.decay * dt;
+        p.size *= Math.pow(0.978, dt);
 
         if (p.alpha <= 0.02 || p.size <= 0.6) {
           particles.splice(i, 1);
@@ -256,16 +263,38 @@ export default function CustomCursor() {
         }
       }
 
-      rafId = requestAnimationFrame(loop);
+      if (particles.length) rafId = requestAnimationFrame(loop);
+      else lastFrame = 0;
     };
-
-    rafId = requestAnimationFrame(loop);
+    const wake = () => {
+      if (active && !paused() && !rafId && particles.length) {
+        lastFrame = 0;
+        rafId = requestAnimationFrame(loop);
+      }
+    };
+    const suspend = () => {
+      if (!paused()) return;
+      cancelAnimationFrame(rafId);
+      rafId = 0; lastFrame = 0;
+      particles.length = 0;
+      ctx.clearRect(0, 0, width, height);
+      cursor.style.opacity = "0";
+      document.body.classList.remove("custom-star-cursor-active");
+      cursor.classList.remove("is-active", "is-hover");
+      isMouseDown = false; isHovering = false;
+      lastX = lastY = -100;
+    };
+    window.addEventListener("intro-preloader-start", suspend);
+    document.addEventListener("visibilitychange", suspend);
+    suspend();
 
     return () => {
       active = false;
       document.body.classList.remove("custom-star-cursor-active");
       cancelAnimationFrame(rafId);
       window.removeEventListener("resize", handleResize);
+      window.removeEventListener("intro-preloader-start", suspend);
+      document.removeEventListener("visibilitychange", suspend);
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mousedown", handleMouseDown);
       window.removeEventListener("mouseup", handleMouseUp);

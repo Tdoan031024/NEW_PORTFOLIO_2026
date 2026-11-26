@@ -273,7 +273,7 @@ export default function HeroThree({
       (navigator.hardwareConcurrency ?? 8) <= 4;
     const scene = new THREE.Scene();
     const renderer = new THREE.WebGLRenderer({
-      antialias: true,
+      antialias: !lowPowerDevice,
       alpha: true,
       powerPreference: "high-performance",
     });
@@ -291,8 +291,8 @@ export default function HeroThree({
     // Keep the room sharp on high-density phones while capping render cost.
     const maxPixelRatio = isCoarsePointer
       ? lowPowerDevice
-        ? 1.5
-        : 2.5
+        ? 1
+        : 1.5
       : lowPowerDevice
         ? 0.95
         : 1.5;
@@ -1025,24 +1025,45 @@ export default function HeroThree({
     const clock = new THREE.Clock();
 
     let isVisible = true;
+    const canRender = () => isVisible && !document.hidden && document.documentElement.dataset.portfolioIntro !== "active";
+    let lastRendered = 0, sampleTime = 0, sampleFrames = 0;
+    let renderDpr = Math.min(window.devicePixelRatio || 1, maxPixelRatio);
+    const syncRendering = () => {
+      if (!canRender()) { window.cancelAnimationFrame(rafId); rafId = 0; lastRendered = 0; return; }
+      if (!rafId) { clock.getDelta(); sampleTime = sampleFrames = 0; lastRendered = 0; rafId = window.requestAnimationFrame(animate); }
+    };
     const observer = new IntersectionObserver(
       ([entry]) => {
         isVisible = entry.isIntersecting;
-        if (isVisible && !rafId) {
-          clock.getDelta();
-          rafId = window.requestAnimationFrame(animate);
-        }
+        syncRendering();
       },
       { threshold: 0.01, rootMargin: "300px" },
     );
     observer.observe(container);
 
-    const animate = () => {
-      if (!isVisible) {
+    const animate = (frameTime: number) => {
+      if (!canRender()) {
         rafId = 0;
+        lastRendered = 0;
         return;
       }
-      const delta = clock.getDelta();
+      const elapsed = lastRendered ? frameTime - lastRendered : 16.667;
+      // On weak devices aim for stable 30 fps; otherwise keep full interaction fidelity.
+      if (lowPowerDevice && lastRendered && elapsed < 31) {
+        rafId = window.requestAnimationFrame(animate);
+        return;
+      }
+      lastRendered = frameTime;
+      sampleTime += elapsed; sampleFrames++;
+      if (sampleTime >= 2200) {
+        const average = sampleTime / sampleFrames;
+        const target = lowPowerDevice ? 39 : 24;
+        const ceiling = Math.min(window.devicePixelRatio || 1, maxPixelRatio);
+        const next = average > target ? Math.max(0.75, renderDpr * 0.85) : average < (lowPowerDevice ? 35 : 18) ? Math.min(ceiling, renderDpr + 0.08) : renderDpr;
+        if (Math.abs(next - renderDpr) >= 0.05) { renderDpr = next; renderer.setPixelRatio(renderDpr); }
+        sampleTime = sampleFrames = 0;
+      }
+      const delta = Math.min(clock.getDelta(), 0.1);
       if (mixer) mixer.update(delta);
 
       if (introZoom && !introCompleted) {
@@ -1248,7 +1269,11 @@ export default function HeroThree({
       rafId = window.requestAnimationFrame(animate);
     };
 
-    rafId = window.requestAnimationFrame(animate);
+    document.addEventListener("visibilitychange", syncRendering);
+    window.addEventListener("intro-preloader-start", syncRendering);
+    window.addEventListener("intro-preloader-complete", syncRendering);
+    window.addEventListener("intro-preloader-resume", syncRendering);
+    syncRendering();
 
     const resizeObserver = new ResizeObserver((entries) => {
       for (const entry of entries) {
@@ -1292,6 +1317,10 @@ export default function HeroThree({
       window.clearTimeout(safetyTimer);
       resizeObserver.disconnect();
       observer.disconnect();
+      document.removeEventListener("visibilitychange", syncRendering);
+      window.removeEventListener("intro-preloader-start", syncRendering);
+      window.removeEventListener("intro-preloader-complete", syncRendering);
+      window.removeEventListener("intro-preloader-resume", syncRendering);
       if (mobileControlsQuery && syncMobileControls) {
         mobileControlsQuery.removeEventListener("change", syncMobileControls);
       }

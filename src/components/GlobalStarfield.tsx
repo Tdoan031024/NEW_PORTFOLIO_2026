@@ -44,6 +44,8 @@ export default function GlobalStarfield() {
     let height = 0;
     let rafId = 0;
     let visible = true;
+    let lastDraw = 0;
+    const paused = () => document.documentElement.dataset.portfolioIntro === "active";
 
     const createStars = () => {
       stars.length = 0;
@@ -72,11 +74,16 @@ export default function GlobalStarfield() {
     };
 
     const draw = (time: number) => {
-      if (!visible || document.hidden) {
+      if (!visible || document.hidden || paused()) {
         rafId = 0;
         return;
       }
 
+      if (!reducedMotion && lastDraw && time - lastDraw < 30) {
+        rafId = window.requestAnimationFrame(draw);
+        return;
+      }
+      lastDraw = time;
       ctx.clearRect(0, 0, width, height);
       for (const star of stars) {
         const pulse = reducedMotion ? 0.75 : 0.45 + Math.sin(time * star.speed + star.phase) * 0.35;
@@ -106,20 +113,22 @@ export default function GlobalStarfield() {
     };
 
     const handleVisibilityChange = () => {
-      if (document.hidden) {
+      if (document.hidden || paused()) {
         if (rafId) {
           window.cancelAnimationFrame(rafId);
           rafId = 0;
         }
-      } else if (visible && !rafId && !reducedMotion) {
-        rafId = window.requestAnimationFrame(draw);
+      } else if (visible && !rafId) {
+        lastDraw = 0;
+        if (reducedMotion) draw(0);
+        else rafId = window.requestAnimationFrame(draw);
       }
     };
 
     const observer = new IntersectionObserver(
       ([entry]) => {
         visible = entry.isIntersecting;
-        if (visible && !rafId && !reducedMotion && !document.hidden) {
+        if (visible && !rafId && !document.hidden && !paused()) {
           rafId = window.requestAnimationFrame(draw);
         }
       },
@@ -128,17 +137,18 @@ export default function GlobalStarfield() {
 
     resize();
     observer.observe(canvas);
-    if (reducedMotion) {
-      draw(0);
-    } else {
-      rafId = window.requestAnimationFrame(draw);
-    }
-    window.addEventListener("resize", resize);
+    handleVisibilityChange();
+    const onResize = () => { resize(); if (reducedMotion && !paused()) draw(0); };
+    window.addEventListener("resize", onResize);
+    window.addEventListener("intro-preloader-start", handleVisibilityChange);
+    window.addEventListener("intro-preloader-resume", handleVisibilityChange);
     document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
       observer.disconnect();
-      window.removeEventListener("resize", resize);
+      window.removeEventListener("resize", onResize);
+      window.removeEventListener("intro-preloader-start", handleVisibilityChange);
+      window.removeEventListener("intro-preloader-resume", handleVisibilityChange);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       if (rafId) window.cancelAnimationFrame(rafId);
     };

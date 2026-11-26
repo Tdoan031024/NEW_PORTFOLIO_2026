@@ -29,10 +29,16 @@ export default function IntroPreloader() {
     let warpAt = 0;
     let raf = 0;
     document.body.style.overflow = "hidden";
+    document.documentElement.dataset.portfolioIntro = "active";
+    window.dispatchEvent(new Event("intro-preloader-start"));
     if (shell) shell.inert = true;
     buttonRef.current?.focus({ preventScroll: true });
 
     const unlock = () => {
+      if (document.documentElement.dataset.portfolioIntro === "active") {
+        delete document.documentElement.dataset.portfolioIntro;
+        window.dispatchEvent(new Event("intro-preloader-resume"));
+      }
       if (shell) shell.inert = previousInert;
       document.body.style.overflow = previousOverflow;
     };
@@ -45,14 +51,16 @@ export default function IntroPreloader() {
       timers.push(window.setTimeout(() => {
         phaseRef.current = "reveal";
         setPhase("reveal");
-        window.dispatchEvent(new CustomEvent("intro-preloader-complete"));
         unlock();
+        window.dispatchEvent(new CustomEvent("intro-preloader-complete"));
         timers.push(window.setTimeout(() => {
           phaseRef.current = "done";
           setPhase("done");
           window.cancelAnimationFrame(raf);
           window.removeEventListener("keydown", onKey);
-          window.removeEventListener("resize", resize);
+          window.removeEventListener("resize", onResize);
+          document.removeEventListener("visibilitychange", onVisibility);
+          motion.removeEventListener("change", onResize);
           const main = shell?.querySelector<HTMLElement>("main");
           if (main && !previousInert) {
             main.setAttribute("tabindex", "-1");
@@ -81,6 +89,13 @@ export default function IntroPreloader() {
     const canvas = canvasRef.current;
     const ctx = canvas?.getContext("2d");
     let w = 1, h = 1, depth = 1, focal = 1, last = 0;
+    const lowPower = window.matchMedia("(pointer: coarse)").matches ||
+      ((navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? 8) <= 4 ||
+      (navigator.hardwareConcurrency ?? 8) <= 4;
+    let quality = lowPower ? 0.65 : 1;
+    let starLimit = 0;
+    let sampleTime = 0, sampleFrames = 0;
+    let glowSprite: HTMLCanvasElement | null = null;
     let stars: Star[] = [];
     const pointer = { x: 0, y: 0, active: false };
     const trail: { x: number; y: number; vx: number; vy: number; life: number; size: number; color: string }[] = [];
@@ -140,38 +155,62 @@ export default function IntroPreloader() {
       if (!canvas || !ctx) return;
       w = window.innerWidth;
       h = window.innerHeight;
-      const dpr = Math.min(window.devicePixelRatio || 1, 1.75);
+      const dpr = Math.min(window.devicePixelRatio || 1, lowPower ? 1 : 1.5);
       canvas.width = Math.round(w * dpr);
       canvas.height = Math.round(h * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       depth = Math.max(w, h);
       focal = depth * 0.55;
-      stars = Array.from({ length: Math.min(1050, Math.max(240, Math.floor(w * h / 1250))) }, () => spawn(true));
+      const count = motion.matches ? 80 : Math.min(lowPower ? 460 : 1050, Math.max(240, Math.floor(w * h / 1250)));
+      stars = Array.from({ length: count }, () => spawn(true));
+      starLimit = Math.max(1, Math.floor(count * quality));
+      if (!glowSprite) {
+        glowSprite = document.createElement("canvas");
+        glowSprite.width = glowSprite.height = 250;
+        const glowCtx = glowSprite.getContext("2d");
+        if (glowCtx) {
+          const glow = glowCtx.createRadialGradient(125, 125, 0, 125, 125, 125);
+          glow.addColorStop(0, "rgba(117, 195, 255, .13)");
+          glow.addColorStop(0.45, "rgba(94, 118, 255, .055)");
+          glow.addColorStop(1, "rgba(94, 118, 255, 0)");
+          glowCtx.fillStyle = glow;
+          glowCtx.fillRect(0, 0, 250, 250);
+        }
+      }
     }
     function frame(now: number) {
-      if (!ctx || phaseRef.current === "done") return;
-      const dt = last ? Math.min((now - last) / 16.667, 2) : 1;
+      raf = 0;
+      if (!ctx || phaseRef.current === "done" || document.hidden) { last = 0; return; }
+      const elapsed = last ? now - last : 16.667;
+      const dt = Math.min(elapsed / 16.667, 3);
       last = now;
+      // Reduce particle load only after sustained slow frames; recover gradually.
+      if (!motion.matches && phaseRef.current === "welcome") {
+        sampleTime += elapsed;
+        sampleFrames++;
+        if (sampleTime >= 1800) {
+          const average = sampleTime / sampleFrames;
+          if (average > 23) quality = Math.max(0.38, quality * 0.8);
+          else if (average < 18) quality = Math.min(lowPower ? 0.75 : 1, quality + 0.08);
+          starLimit = Math.max(1, Math.floor(stars.length * quality));
+          sampleTime = sampleFrames = 0;
+        }
+      }
       const warping = phaseRef.current === "warp" && !motion.matches;
       const p = warping ? Math.min(1, (now - warpAt) / 1250) : 0;
       const speed = motion.matches ? 0 : warping ? 0.7 + Math.pow(p, 2.3) * 95 : 0.65;
       ctx.clearRect(0, 0, w, h);
       if (phaseRef.current === "welcome" && pointer.active && !motion.matches) {
-        const glow = ctx.createRadialGradient(pointer.x, pointer.y, 0, pointer.x, pointer.y, 125);
-        glow.addColorStop(0, "rgba(117, 195, 255, .13)");
-        glow.addColorStop(0.45, "rgba(94, 118, 255, .055)");
-        glow.addColorStop(1, "rgba(94, 118, 255, 0)");
-        ctx.fillStyle = glow;
-        ctx.fillRect(0, 0, w, h);
+        if (glowSprite) ctx.drawImage(glowSprite, pointer.x - 125, pointer.y - 125);
       }
-      for (let i = 0; i < stars.length; i++) {
+      for (let i = 0; i < starLimit; i++) {
         let star = stars[i];
         star.z -= speed * dt;
-        if (star.z < 12) star = stars[i] = spawn(false);
+        if (star.z < 12) Object.assign(star, spawn(false));
         const x = w / 2 + star.x * focal / star.z;
         const y = h / 2 + star.y * focal / star.z;
         if (x < -80 || x > w + 80 || y < -80 || y > h + 80) {
-          stars[i] = spawn(false);
+          Object.assign(star, spawn(false));
           continue;
         }
         const tailZ = star.z + (warping ? 8 + p * p * 380 : 0);
@@ -219,16 +258,31 @@ export default function IntroPreloader() {
         hidePointer();
       }
       ctx.globalAlpha = 1;
-      raf = window.requestAnimationFrame(frame);
+      if (!motion.matches && !document.hidden) raf = window.requestAnimationFrame(frame);
     }
+    const wake = () => {
+      if (ctx && !raf && !document.hidden && phaseRef.current !== "done") {
+        last = 0; sampleTime = sampleFrames = 0;
+        raf = window.requestAnimationFrame(frame);
+      }
+    };
+    const onVisibility = () => {
+      if (document.hidden) { window.cancelAnimationFrame(raf); raf = 0; last = 0; hidePointer(); trail.length = 0; }
+      else wake();
+    };
+    const onResize = () => { resize(); wake(); };
     resize();
-    if (ctx) raf = window.requestAnimationFrame(frame);
-    window.addEventListener("resize", resize);
+    wake();
+    window.addEventListener("resize", onResize);
+    document.addEventListener("visibilitychange", onVisibility);
+    motion.addEventListener("change", onResize);
     return () => {
       window.cancelAnimationFrame(raf);
       timers.forEach((timer) => window.clearTimeout(timer));
       window.removeEventListener("keydown", onKey);
-      window.removeEventListener("resize", resize);
+      window.removeEventListener("resize", onResize);
+      document.removeEventListener("visibilitychange", onVisibility);
+      motion.removeEventListener("change", onResize);
       overlay?.removeEventListener("pointermove", onPointerMove);
       overlay?.removeEventListener("pointerleave", hidePointer);
       window.removeEventListener("blur", hidePointer);
