@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import HeroSection from "@/components/sections/HeroSection";
 import IntroModelSection from "@/components/sections/IntroModelSection";
 import IntroPreloader from "@/components/IntroPreloader";
+import UniverseLauncher from "@/components/universe/UniverseLauncher";
 
 const SkillsSection = dynamic(() => import("@/components/sections/SkillsSection"));
 const ExperienceSection = dynamic(() => import("@/components/sections/ExperienceSection"));
@@ -28,6 +29,7 @@ export default function Home() {
       {/* Live chat an khi dang preview loading */}
 
       <SiteFooter />
+      <UniverseLauncher />
     </div>
   );
 }
