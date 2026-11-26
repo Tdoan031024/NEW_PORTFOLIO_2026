@@ -997,6 +997,7 @@ export default function HeroThree({
       }
 
       if (hitTarget.ball) {
+        window.dispatchEvent(new CustomEvent("room-3d-interact",{detail:{type:"ball",id:"ball-"+Date.now(),icon:"⚽",title:"Gravity test",message:"Orbit unlocked!"}}));
         ballBounceStartAt = performance.now();
         ballBounceUntil = ballBounceStartAt + 1400;
         return;
@@ -1165,6 +1166,13 @@ export default function HeroThree({
         rimLight.intensity = 0.6;
       }
 
+      if (!isIntroActive) {
+        const night = document.documentElement.dataset.universeRoom === "night";
+        const blend = 1 - Math.exp(-delta * 4);
+        ambientLight.intensity += ((night ? 0.24 : 0.65) - ambientLight.intensity) * blend;
+        directionalLight.intensity += ((night ? 0.33 : 1.05) - directionalLight.intensity) * blend;
+        rimLight.intensity += ((night ? 1.5 : 0.6) - rimLight.intensity) * blend;
+      }
       const waveActive = now < waveUntil;
       const wavePhase = waveActive ? (now - lastClickAt) / 180 : 0;
 
