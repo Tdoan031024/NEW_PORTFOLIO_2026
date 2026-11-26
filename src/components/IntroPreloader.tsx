@@ -13,6 +13,8 @@ export default function IntroPreloader() {
   const phaseRef = useRef<Phase>("welcome");
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const pointerRef = useRef<HTMLDivElement>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
   const startRef = useRef<(() => void) | null>(null);
 
   useEffect(() => { setMounted(true); }, []);
@@ -60,9 +62,18 @@ export default function IntroPreloader() {
       }, instant ? 0 : 1250));
     };
     const onKey = (event: KeyboardEvent) => {
-      if (phaseRef.current !== "welcome") return;
-      if (event.key === "Escape") { event.preventDefault(); finish(true); }
-      if (event.key === "Tab") { event.preventDefault(); buttonRef.current?.focus(); }
+      if (phaseRef.current !== "welcome" || event.repeat || event.isComposing) return;
+      // Keep browser/OS shortcuts and keyboard accessibility intact.
+      if (event.ctrlKey || event.metaKey || event.altKey ||
+          ["Shift", "Control", "Alt", "Meta", "CapsLock", "NumLock", "ScrollLock", "Fn", "AltGraph", "Dead", "Process", "Unidentified"].includes(event.key) ||
+          /^F\d+$/.test(event.key)) return;
+      if (event.key === "Tab") {
+        event.preventDefault();
+        buttonRef.current?.focus();
+        return;
+      }
+      event.preventDefault();
+      finish();
     };
     startRef.current = () => finish();
     window.addEventListener("keydown", onKey);
@@ -71,6 +82,53 @@ export default function IntroPreloader() {
     const ctx = canvas?.getContext("2d");
     let w = 1, h = 1, depth = 1, focal = 1, last = 0;
     let stars: Star[] = [];
+    const pointer = { x: 0, y: 0, active: false };
+    const trail: { x: number; y: number; vx: number; vy: number; life: number; size: number; color: string }[] = [];
+    let previousX = 0, previousY = 0, lastParticle = 0;
+    const overlay = overlayRef.current;
+    const pointerEl = pointerRef.current;
+    const finePointer = window.matchMedia("(hover: hover) and (pointer: fine)");
+    const hidePointer = () => {
+      pointer.active = false;
+      if (pointerEl) pointerEl.style.opacity = "0";
+      overlay?.removeAttribute("data-pointer");
+    };
+    const onPointerMove = (event: PointerEvent) => {
+      if (phaseRef.current !== "welcome" || motion.matches || !finePointer.matches || event.pointerType === "touch") {
+        hidePointer();
+        return;
+      }
+      const x = event.clientX, y = event.clientY;
+      const dx = pointer.active ? x - previousX : 0;
+      const dy = pointer.active ? y - previousY : 0;
+      pointer.x = x; pointer.y = y; pointer.active = true;
+      previousX = x; previousY = y;
+      if (pointerEl) {
+        pointerEl.style.transform = `translate3d(${x}px,${y}px,0)`;
+        pointerEl.style.opacity = "1";
+      }
+      overlay?.setAttribute("data-pointer", "active");
+      const now = performance.now();
+      if (now - lastParticle < 12) return;
+      lastParticle = now;
+      const count = Math.min(5, Math.max(1, Math.ceil(Math.hypot(dx, dy) / 10)));
+      for (let i = 0; i < count; i++) {
+        const t = (i + 1) / count;
+        trail.push({
+          x: x - dx * (1 - t), y: y - dy * (1 - t),
+          vx: (Math.random() - 0.5) * 1.7, vy: (Math.random() - 0.5) * 1.7,
+          life: 1, size: 0.9 + Math.random() * 2.3,
+          color: COLORS[Math.floor(Math.random() * COLORS.length)],
+        });
+      }
+      if (trail.length > 120) trail.splice(0, trail.length - 120);
+    };
+    const onMotionChange = () => { if (motion.matches || !finePointer.matches) { hidePointer(); trail.length = 0; } };
+    overlay?.addEventListener("pointermove", onPointerMove);
+    overlay?.addEventListener("pointerleave", hidePointer);
+    window.addEventListener("blur", hidePointer);
+    motion.addEventListener("change", onMotionChange);
+    finePointer.addEventListener("change", onMotionChange);
     const spawn = (initial: boolean): Star => ({
       x: (Math.random() - 0.5) * w * 2,
       y: (Math.random() - 0.5) * h * 2,
@@ -98,6 +156,14 @@ export default function IntroPreloader() {
       const p = warping ? Math.min(1, (now - warpAt) / 1250) : 0;
       const speed = motion.matches ? 0 : warping ? 0.7 + Math.pow(p, 2.3) * 95 : 0.65;
       ctx.clearRect(0, 0, w, h);
+      if (phaseRef.current === "welcome" && pointer.active && !motion.matches) {
+        const glow = ctx.createRadialGradient(pointer.x, pointer.y, 0, pointer.x, pointer.y, 125);
+        glow.addColorStop(0, "rgba(117, 195, 255, .13)");
+        glow.addColorStop(0.45, "rgba(94, 118, 255, .055)");
+        glow.addColorStop(1, "rgba(94, 118, 255, 0)");
+        ctx.fillStyle = glow;
+        ctx.fillRect(0, 0, w, h);
+      }
       for (let i = 0; i < stars.length; i++) {
         let star = stars[i];
         star.z -= speed * dt;
@@ -126,6 +192,32 @@ export default function IntroPreloader() {
           ctx.fill();
         }
       }
+      if (phaseRef.current === "welcome" && !motion.matches) {
+        for (let i = trail.length - 1; i >= 0; i--) {
+          const particle = trail[i];
+          particle.life -= 0.035 * dt;
+          if (particle.life <= 0) { trail.splice(i, 1); continue; }
+          particle.x += particle.vx * dt;
+          particle.y += particle.vy * dt;
+          ctx.globalAlpha = particle.life * 0.85;
+          ctx.fillStyle = particle.color;
+          const size = particle.size * particle.life;
+          ctx.beginPath();
+          ctx.moveTo(particle.x, particle.y - size * 1.8);
+          ctx.lineTo(particle.x + size * 0.45, particle.y - size * 0.45);
+          ctx.lineTo(particle.x + size * 1.8, particle.y);
+          ctx.lineTo(particle.x + size * 0.45, particle.y + size * 0.45);
+          ctx.lineTo(particle.x, particle.y + size * 1.8);
+          ctx.lineTo(particle.x - size * 0.45, particle.y + size * 0.45);
+          ctx.lineTo(particle.x - size * 1.8, particle.y);
+          ctx.lineTo(particle.x - size * 0.45, particle.y - size * 0.45);
+          ctx.closePath();
+          ctx.fill();
+        }
+      } else if (trail.length || pointer.active) {
+        trail.length = 0;
+        hidePointer();
+      }
       ctx.globalAlpha = 1;
       raf = window.requestAnimationFrame(frame);
     }
@@ -137,6 +229,12 @@ export default function IntroPreloader() {
       timers.forEach((timer) => window.clearTimeout(timer));
       window.removeEventListener("keydown", onKey);
       window.removeEventListener("resize", resize);
+      overlay?.removeEventListener("pointermove", onPointerMove);
+      overlay?.removeEventListener("pointerleave", hidePointer);
+      window.removeEventListener("blur", hidePointer);
+      motion.removeEventListener("change", onMotionChange);
+      finePointer.removeEventListener("change", onMotionChange);
+      hidePointer();
       startRef.current = null;
       if (phaseRef.current !== "done") unlock();
     };
@@ -145,8 +243,14 @@ export default function IntroPreloader() {
   if (!mounted || phase === "done") return null;
 
   return createPortal(
-    <div className="portfolio-warp-intro" data-phase={phase} role="dialog" aria-modal={phase === "welcome"} aria-labelledby="warp-title">
+    <div ref={overlayRef} className="portfolio-warp-intro" data-phase={phase} role="dialog" aria-modal={phase === "welcome"} aria-labelledby="warp-title">
       <canvas ref={canvasRef} aria-hidden="true" className="warp-canvas" />
+      <div ref={pointerRef} className="warp-pointer" aria-hidden="true">
+        <svg viewBox="0 0 32 32" width="30" height="30" fill="none">
+          <path d="M16 2 L19.2 12.8 L30 16 L19.2 19.2 L16 30 L12.8 19.2 L2 16 L12.8 12.8 Z" fill="#f0faff" stroke="#9de7ff" strokeWidth=".7" />
+          <circle cx="16" cy="16" r="2.2" fill="white" />
+        </svg>
+      </div>
       <div className="warp-floats" aria-hidden="true">
         <div className="warp-tile tile-one"><small>01 / ABOUT</small><strong>Hi, I&apos;m<br />Tuyen Doan.</strong><span>HELLO WORLD</span></div>
         <div className="warp-tile tile-two"><small>02 / STACK</small><strong>Build.<br />Ship. Repeat.</strong><span>Next.js &middot; TypeScript</span></div>
@@ -158,7 +262,7 @@ export default function IntroPreloader() {
         <h1 id="warp-title">Welcome to my universe.</h1>
         <p>Tuyen Doan &middot; Full-Stack Software Engineer</p>
         <button ref={buttonRef} type="button" onClick={() => startRef.current?.()} disabled={phase !== "welcome"} className="warp-enter">Enter portfolio <span aria-hidden="true">&#8599;</span></button>
-        <div className="warp-hint">Press Esc to skip</div>
+        <div className="warp-hint">Press any key to enter</div>
       </div>
       <style>{`
         .portfolio-warp-intro{position:fixed;inset:0;z-index:999999;background:#020306;color:#f7f8fc;display:grid;place-items:center;overflow:hidden;isolation:isolate;transition:opacity 500ms ease;cursor:auto!important}
@@ -166,6 +270,16 @@ export default function IntroPreloader() {
         body.custom-star-cursor-active .portfolio-warp-intro button{cursor:pointer!important}
         .portfolio-warp-intro[data-phase="reveal"]{opacity:0;pointer-events:none}
         .warp-canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+        .warp-pointer{position:absolute;top:0;left:0;width:0;height:0;z-index:5;pointer-events:none;opacity:0;will-change:transform;transition:opacity 150ms}
+        .warp-pointer svg{position:absolute;left:-15px;top:-15px;filter:drop-shadow(0 0 5px #fff) drop-shadow(0 0 12px #67dfff) drop-shadow(0 0 18px #9f7cff)}
+        .portfolio-warp-intro:not([data-phase="welcome"]) .warp-pointer{opacity:0!important}
+        @media(hover:hover) and (pointer:fine) and (prefers-reduced-motion:no-preference){
+          .portfolio-warp-intro[data-phase="welcome"][data-pointer="active"],
+          .portfolio-warp-intro[data-phase="welcome"][data-pointer="active"] *,
+          body.custom-star-cursor-active .portfolio-warp-intro[data-phase="welcome"][data-pointer="active"] *,
+          body.custom-star-cursor-active .portfolio-warp-intro[data-phase="welcome"][data-pointer="active"] button{cursor:none!important}
+        }
+        @media(prefers-reduced-motion:reduce),(pointer:coarse){.warp-pointer{display:none}}
         .warp-content{position:relative;z-index:2;max-width:90vw;text-align:center;transition:opacity 300ms,transform 550ms cubic-bezier(.2,.7,.3,1)}
         .warp-eyebrow{font:500 11px var(--font-mono),monospace;letter-spacing:.28em;color:#9fb4d2;margin-bottom:18px}
         .warp-content h1{font-size:clamp(27px,4.4vw,64px);font-weight:500;letter-spacing:-.055em;line-height:1.12;margin:0 0 13px;color:#fff}
