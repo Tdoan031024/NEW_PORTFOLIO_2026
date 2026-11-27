@@ -1315,7 +1315,7 @@ export default function HeroThree({
 
         camera.aspect = width / height;
         camera.updateProjectionMatrix();
-        renderer.setSize(width, height, false);
+        renderer.setSize(width, height);
       }
     });
     resizeObserver.observe(container);
